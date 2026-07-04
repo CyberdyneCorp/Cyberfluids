@@ -68,4 +68,46 @@ void applyShanChenForce(FluidLattice& fluid, const typename FluidLattice::ValueT
     });
 }
 
+/// Inter-species Shan-Chen force for ONE species sigma, written into ITS per-cell
+/// external force slots (consumed by ExternalForceBGKdynamics). Uses the standard
+/// multicomponent pseudopotential psi = rho (linear) and weights w_i = t_i:
+///   F_sigma(x) = -G psi(rho_sigma(x)) * sum_{i>0} w_i psi(rho_other(x+c_i)) c_i.
+/// `rhoSelf` is species sigma's density field, `rhoOther` the OTHER species'
+/// density field (both from computeDensityField, same pre-collision time level).
+/// 2D periodic wrap, mirroring applyShanChenForce. G>0 is repulsive (immiscible).
+/// With psi=rho and tau=1 the de-mixing onset (measured, D2Q9) is G*rho_mean ~= 1;
+/// the stable de-mixing window sits around G*rho_mean in [1.1, 1.5] (a lower mean
+/// density widens it) before the linear (non-saturating) psi drives divergence.
+/// See openspec/specs/physical-models/spec.md.
+template <class Backend = backend::Default, class FluidLattice>
+void applyInterComponentForce(FluidLattice& fluid,
+                              const typename FluidLattice::ValueType* rhoSelf,
+                              const typename FluidLattice::ValueType* rhoOther,
+                              typename FluidLattice::ValueType G) {
+    using T = typename FluidLattice::ValueType;
+    using D = typename FluidLattice::DescriptorType;
+    static_assert(FluidLattice::dimension == 2, "Multi-component Shan-Chen MVP is 2D");
+    static_assert(numForceScalars<D>() >= D::d,
+                  "applyInterComponentForce needs a force external field (e.g. ForcedD2Q9)");
+    constexpr int q = D::q;
+    constexpr int forceOff = D::ExternalSpec::forceBeginsAt;
+    const std::int64_t nx = fluid.extent(0), ny = fluid.extent(1);
+
+    Backend::forEachIndex(fluid.ncells(), [&, nx, ny](std::int64_t c) {
+        const std::int64_t y = c % ny, x = c / ny;
+        const T psiSelf = rhoSelf[c];  // linear pseudopotential psi = rho
+        T sx = T(0), sy = T(0);
+        for (int i = 1; i < q; ++i) {  // skip rest link (c_0 = 0)
+            const std::int64_t xn = ((x + D::c[i][0]) % nx + nx) % nx;
+            const std::int64_t yn = ((y + D::c[i][1]) % ny + ny) % ny;
+            const T w = static_cast<T>(D::t[i]);
+            const T psiN = rhoOther[xn * ny + yn];  // OTHER species, psi = rho
+            sx += w * psiN * static_cast<T>(D::c[i][0]);
+            sy += w * psiN * static_cast<T>(D::c[i][1]);
+        }
+        fluid.externalField()(forceOff + 0, c) = -G * psiSelf * sx;
+        fluid.externalField()(forceOff + 1, c) = -G * psiSelf * sy;
+    });
+}
+
 }  // namespace cyberfluids
