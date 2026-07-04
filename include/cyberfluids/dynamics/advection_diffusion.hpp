@@ -18,9 +18,12 @@ namespace cyberfluids {
 /// descriptors::AdvectedD2Q5). See openspec/specs/collision-dynamics/spec.md.
 template <class T, LatticeDescriptor Descriptor>
 class AdvectionDiffusionBGKdynamics final : public Dynamics<T, Descriptor> {
-    static_assert(numExternalScalars<Descriptor>() >= Descriptor::d,
-                  "AdvectionDiffusionBGKdynamics needs a descriptor with >= d external velocity "
-                  "scalars (e.g. descriptors::AdvectedD2Q5)");
+    static_assert(numVelocityScalars<Descriptor>() >= Descriptor::d,
+                  "AdvectionDiffusionBGKdynamics needs a descriptor declaring an advection-"
+                  "velocity external field with >= d scalars (e.g. descriptors::AdvectedD2Q5)");
+    static_assert(numExternalScalars<Descriptor>() >=
+                      Descriptor::ExternalSpec::velocityBeginsAt + Descriptor::d,
+                  "velocity external block must fit within the declared external scalars");
 
 public:
     using Base = Dynamics<T, Descriptor>;

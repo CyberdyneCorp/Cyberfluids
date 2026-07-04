@@ -101,9 +101,12 @@ private:
 /// external field before each collide. See openspec/specs/collision-dynamics/spec.md.
 template <class T, LatticeDescriptor Descriptor>
 class ExternalForceBGKdynamics final : public Dynamics<T, Descriptor> {
-    static_assert(numExternalScalars<Descriptor>() >= Descriptor::d,
-                  "ExternalForceBGKdynamics needs a descriptor with >= d external scalars "
-                  "(e.g. descriptors::ForcedD2Q9)");
+    static_assert(numForceScalars<Descriptor>() >= Descriptor::d,
+                  "ExternalForceBGKdynamics needs a descriptor declaring a force external field "
+                  "with >= d scalars (e.g. descriptors::ForcedD2Q9)");
+    static_assert(numExternalScalars<Descriptor>() >=
+                      Descriptor::ExternalSpec::forceBeginsAt + Descriptor::d,
+                  "force external block must fit within the declared external scalars");
 
 public:
     using Base = Dynamics<T, Descriptor>;

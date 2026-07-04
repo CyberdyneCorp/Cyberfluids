@@ -20,8 +20,11 @@ void copyVelocityToExternal(FluidLattice& fluid, ADLattice& ad) {
     using ADDesc = typename ADLattice::DescriptorType;
     static_assert(FluidLattice::dimension == ADLattice::dimension,
                   "fluid and AD lattices must share dimension");
-    static_assert(numExternalScalars<ADDesc>() >= ADDesc::d,
+    static_assert(numVelocityScalars<ADDesc>() >= ADDesc::d,
                   "AD lattice needs a per-cell velocity external field (e.g. AdvectedD2Q5)");
+    static_assert(numExternalScalars<ADDesc>() >=
+                      ADDesc::ExternalSpec::velocityBeginsAt + ADDesc::d,
+                  "velocity external block must fit within the declared external scalars");
     constexpr int d = ADDesc::d;
     constexpr int velOff = ADDesc::ExternalSpec::velocityBeginsAt;
 
@@ -33,9 +36,13 @@ void copyVelocityToExternal(FluidLattice& fluid, ADLattice& ad) {
         throw std::invalid_argument("copyVelocityToExternal: fluid and AD lattice extents differ");
 
     Backend::forEachIndex(ad.ncells(), [&](std::int64_t c) {
-        auto fluidCell = fluid.cellByIndex(c);
         std::array<T, d> u{};
-        fluid.getDynamics(c)->computeVelocity(fluidCell, u);
+        // Skip unassigned fluid cells (nullptr dynamics), mirroring collide();
+        // they contribute zero advection velocity.
+        if (auto* dyn = fluid.getDynamics(c)) {
+            auto fluidCell = fluid.cellByIndex(c);
+            dyn->computeVelocity(fluidCell, u);
+        }
         for (int a = 0; a < d; ++a) ad.externalField()(velOff + a, c) = u[a];
     });
 }

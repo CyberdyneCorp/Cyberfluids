@@ -48,4 +48,24 @@ constexpr int numExternalScalars() {
         return 0;
 }
 
+/// Size of the declared force block (0 if the descriptor declares no force).
+/// Distinguishes a force spec from a velocity spec so a mismatched dynamics
+/// fails to compile instead of silently reading the wrong slots.
+template <class D>
+constexpr int numForceScalars() {
+    if constexpr (requires { D::ExternalSpec::sizeOfForce; })
+        return D::ExternalSpec::sizeOfForce;
+    else
+        return 0;
+}
+
+/// Size of the declared advection-velocity block (0 if none).
+template <class D>
+constexpr int numVelocityScalars() {
+    if constexpr (requires { D::ExternalSpec::sizeOfVelocity; })
+        return D::ExternalSpec::sizeOfVelocity;
+    else
+        return 0;
+}
+
 }  // namespace cyberfluids

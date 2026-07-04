@@ -52,6 +52,31 @@ int main() {
         CF_CHECK_CLOSE(ad.externalField()(1, c), u0[1], 1e-12);
     }
 
+    // Regression (review finding): fluid dynamics attributed to a strict sub-box
+    // leaves edge cells with null dynamics; coupling must not deref null — those
+    // cells get zero advection velocity.
+    {
+        FluidLattice fluidSub(n, n);
+        cyberfluids::Box<2> inner;
+        inner.lo[0] = 1;
+        inner.lo[1] = 1;
+        inner.hi[0] = n - 2;
+        inner.hi[1] = n - 2;
+        fluidSub.attributeDynamics(inner, std::make_shared<BGK>(1.0));
+        initFluidAtVelocity(fluidSub, u0);  // populations set everywhere
+
+        ADLattice adSub(n, n);
+        adSub.attributeDynamics(adSub.getBoundingBox(), std::make_shared<AD>(1.0));
+        cyberfluids::copyVelocityToExternal(fluidSub, adSub);  // must not crash
+
+        // Corner (0,0) was unassigned -> zero; an interior cell -> fluid velocity.
+        const std::int64_t corner = adSub.index(0, 0);
+        CF_CHECK(adSub.externalField()(0, corner) == 0.0);
+        CF_CHECK(adSub.externalField()(1, corner) == 0.0);
+        const std::int64_t mid = adSub.index(n / 2, n / 2);
+        CF_CHECK_CLOSE(adSub.externalField()(0, mid), u0[0], 1e-12);
+    }
+
     // Geometry mismatch is rejected.
     {
         ADLattice adBad(n, n + 1);
