@@ -7,9 +7,7 @@ Cyberfluids SHALL parametrize every LBM model over a compile-time **lattice desc
 velocities `q`, the discrete velocity set, the lattice weights, and the lattice sound
 speed. Descriptors decouple collision/streaming code from the specific stencil, and
 C++20 Concepts SHALL validate descriptor types at compile time.
-
 ## Requirements
-
 ### Requirement: Descriptor structure
 A descriptor SHALL expose, as compile-time constants, the dimension `d`, the velocity
 count `q` (also surfaced as `numPop`), the discrete velocity vectors `c[q][d]`, their
@@ -43,13 +41,23 @@ The library SHALL provide the standard nearest-neighbour hydrodynamic descriptor
 - **THEN** it SHALL use the corresponding 3D stencil with `d=3`
 
 ### Requirement: Advection-diffusion descriptors
-The library SHALL provide reduced-velocity descriptors for scalar advection-diffusion —
-**D2Q5** and **D3Q7** — carrying the advection velocity as external state.
+The library SHALL provide the reduced-velocity **base stencils** for scalar
+advection-diffusion — **D2Q5** and **D3Q7** — as compile-time descriptors satisfying the
+`LatticeDescriptor` Concept (dimension, velocity set, weights, `cs2`, opposites).
 
-#### Scenario: Scalar transport lattice
-- **WHEN** a scalar transport lattice is templated on `D2Q5` or `D3Q7`
-- **THEN** it SHALL use the reduced stencil and expose the advection velocity as a
-  per-cell external field
+Carrying the advection velocity as a per-cell external field, and the `WithSource` (reaction
+term) variants, are deferred until external-field infrastructure is added; the base stencils
+are usable on their own.
+
+#### Scenario: Scalar transport stencil
+- **WHEN** a lattice is templated on `D2Q5` or `D3Q7`
+- **THEN** it SHALL expose the reduced velocity set with the correct weights and `cs2`, and
+  SHALL satisfy the `LatticeDescriptor` Concept
+
+#### Scenario: Advection velocity as external field
+- **GIVEN** external-field infrastructure is not yet available
+- **THEN** the advection-velocity external field and `WithSource` variants SHALL be provided
+  by a later change, not this one
 
 ### Requirement: Descriptor variants with external fields
 The library SHALL provide descriptor variants that declare per-cell external fields (e.g.
@@ -61,3 +69,4 @@ SHALL add no per-cell overhead.
 - **WHEN** a simulation using an external-force scheme is templated on a forced variant
   of a base stencil
 - **THEN** each cell SHALL carry the declared force components as external fields
+

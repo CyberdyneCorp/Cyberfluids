@@ -7,9 +7,7 @@ the local collision operator, the equilibrium distribution, and how macroscopic 
 are computed from populations. A family of collision models (BGK, TRT, MRT, regularized,
 forced) SHALL be selectable per cell or per region without changing surrounding code. The
 formulations SHALL match the Palabos reference.
-
 ## Requirements
-
 ### Requirement: Dynamics interface
 The library SHALL define an abstract `Dynamics<T, Descriptor>` interface implementing at
 minimum `collide()`, `computeEquilibrium()`, moment computations (`computeDensity`,
@@ -59,10 +57,23 @@ non-equilibrium part before relaxation.
   Hermite/stress basis) before relaxation
 
 ### Requirement: Forced dynamics
-The library SHALL provide forced collision variants that add a body-force term (e.g.
-Guo forcing) using the force stored as a per-cell external field.
+The library SHALL provide a forced collision variant that adds a **uniform (constant) body
+force** to the flow using Guo forcing. The force is a fixed vector supplied to the dynamics
+(not a per-cell external field). The macroscopic velocity SHALL include the half-force
+correction `u = (sum_i f_i c_i + F/2) / rho`, and the collision SHALL add the Guo source term
+`S_i = (1 - omega/2) w_i [ (c_i - u)/cs2 + (c_i . u)/cs2^2 c_i ] . F`.
+
+Per-cell external-field forcing (a force that varies in space, stored on the cell) is deferred
+until external-field infrastructure is added.
 
 #### Scenario: Body force applied
-- **WHEN** cells use a forced dynamics on a forced descriptor with a nonzero force field
-- **THEN** collision SHALL incorporate the forcing term and the recovered momentum SHALL
+- **WHEN** cells use forced BGK dynamics with a nonzero uniform force `F`
+- **THEN** collision SHALL incorporate the Guo source term and the recovered momentum SHALL
   include the half-force correction
+
+#### Scenario: Poiseuille channel
+- **GIVEN** a channel with no-slip walls and a uniform streamwise body force `F`
+- **WHEN** the flow reaches steady state
+- **THEN** the velocity profile SHALL match the analytic parabola
+  `u(y) = F/(2 rho nu) * y (L - y)` within a documented tolerance
+
