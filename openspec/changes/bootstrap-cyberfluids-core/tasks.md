@@ -1,21 +1,21 @@
 ## 1. Build system & dependencies
 
-- [ ] 1.1 Create root `CMakeLists.txt` (C++20, CMake ≥ 3.24) and project layout (`include/`, `src/`, `tests/`, `bindings/`)
-- [ ] 1.2 Add `cmake/` modules fetching NumPP and SciPP via FetchContent, pinned to specific revisions
-- [ ] 1.3 Add backend feature flags: `CYBERFLUIDS_CPU` (on), `CYBERFLUIDS_CUDA`/`_METAL`/`_OPENCL`/`_SYCL` (off by default); assert no MPI dependency
+- [x] 1.1 Create root `CMakeLists.txt` (C++20, CMake ≥ 3.24) and project layout (`include/`, `cmake/`, `tests/`, `scripts/`)
+- [x] 1.2 Add `cmake/` dependency module resolving NumPP/SciPP via install-prefix + `find_package(CONFIG)` (SciPP itself consumes NumPP this way, so FetchContent is unworkable); `scripts/bootstrap_deps.sh` builds+installs into `.deps`. NumPP 1.6.0 resolved; SciPP pending its own install/export rules (not needed for the MVP)
+- [x] 1.3 Add backend feature flags: `CYBERFLUIDS_CPU` (on), `CYBERFLUIDS_CUDA`/`_METAL`/`_OPENCL`/`_SYCL` (off by default); no MPI dependency
 - [ ] 1.4 Add iOS (AppleClang) and Android NDK toolchain configuration for the core
-- [ ] 1.5 Wire CTest and a CI-friendly `validate + build + test` target
+- [ ] 1.5 Wire CTest and a CI-friendly `validate + build + test` target  *(CTest wired; CI target pending)*
 
 ## 2. Lattice descriptors
 
-- [ ] 2.1 Define the `LatticeDescriptor` C++20 Concept (d, q/numPop, c, cNormSqr, t, cs2, invCs2)
-- [ ] 2.2 Implement `D2Q9` descriptor with correct velocities, weights, and `cs2=1/3`
-- [ ] 2.3 Implement `D3Q19` descriptor
-- [ ] 2.4 Unit-test descriptor constants and add a negative compile test for a non-conforming type
+- [x] 2.1 Define the `LatticeDescriptor` C++20 Concept (d, q/numPop, c, cNormSqr, t, cs2, invCs2)
+- [x] 2.2 Implement `D2Q9` descriptor with correct velocities, weights, and `cs2=1/3`
+- [x] 2.3 Implement `D3Q19` descriptor
+- [x] 2.4 Unit-test descriptor constants (weights sum, 1st/2nd moments, opposites, cNormSqr) and add a negative compile test for a non-conforming type
 
 ## 3. Core data structures (NumPP-backed)
 
-- [ ] 3.1 Implement NumPP-backed SoA population storage (`[q][cells]`) for a domain
+- [x] 3.1 Implement NumPP-backed SoA population storage (`[q][cells]`) for a domain — `PopulationField<T,Descriptor>` over `numpp::ndarray`; layout verified by test
 - [ ] 3.2 Implement `ScalarField<T>` and `TensorField<T,N>` over NumPP arrays (2D/3D)
 - [ ] 3.3 Implement `BlockLattice<T,Descriptor>` (2D/3D): allocation, `getBoundingBox()`, cell access
 - [ ] 3.4 Implement `Cell<T,Descriptor>` as a view: `operator[](iPop)`, dynamics reference, external fields

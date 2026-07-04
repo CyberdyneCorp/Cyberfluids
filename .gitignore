@@ -3,6 +3,10 @@
 /build-*/
 /out/
 cmake-build-*/
+
+# Local dependency install prefix + build trees (scripts/bootstrap_deps.sh)
+/.deps/
+/.deps-build/
 *.o
 *.obj
 *.a
