@@ -47,11 +47,16 @@ void applyBuoyancy(FluidLattice& fluid, ADLattice& temperature,
 
     const int axis = p.gravityAxis;
     Backend::forEachIndex(fluid.ncells(), [&](std::int64_t c) {
-        T phi = T(0);
-        if (auto* tdyn = temperature.getDynamics(c)) {
-            auto tcell = temperature.cellByIndex(c);
-            phi = tdyn->computeDensity(tcell);
+        // Unassigned temperature cell -> zero force (a true zero contribution,
+        // mirroring copyVelocityToExternal; otherwise the affine formula would
+        // inject a spurious -rho*g*beta*T_ref).
+        auto* tdyn = temperature.getDynamics(c);
+        if (tdyn == nullptr) {
+            for (int a = 0; a < d; ++a) fluid.externalField()(forceOff + a, c) = T(0);
+            return;
         }
+        auto tcell = temperature.cellByIndex(c);
+        const T phi = tdyn->computeDensity(tcell);
         T rho = p.rho0;
         if (p.useLocalDensity) {
             if (auto* fdyn = fluid.getDynamics(c)) {

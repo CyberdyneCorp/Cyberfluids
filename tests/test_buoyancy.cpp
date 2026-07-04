@@ -82,6 +82,23 @@ int main() {
         CF_CHECK_CLOSE(fsub.externalField()(1, fsub.index(0, 0)), expected, 1e-12);  // rho0=1
     }
 
+    // Regression (review finding): an unassigned TEMPERATURE cell must produce
+    // zero force (not -rho*g*beta*T_ref), mirroring the one-way coupling.
+    {
+        TempL tsub(n, n);
+        cyberfluids::Box<2> inner;
+        inner.lo = {1, 1};
+        inner.hi = {n - 2, n - 2};
+        tsub.attributeDynamics(inner, std::make_shared<AD>(1.0));
+        initTemp(tsub, Tval);  // populations set everywhere; corner has null dynamics
+        cyberfluids::applyBuoyancy(fluid, tsub, p);
+        const std::int64_t corner = fluid.index(0, 0);
+        CF_CHECK(fluid.externalField()(1, corner) == 0.0);  // no spurious buoyancy
+        CF_CHECK(fluid.externalField()(0, corner) == 0.0);
+        const std::int64_t mid = fluid.index(n / 2, n / 2);
+        CF_CHECK_CLOSE(fluid.externalField()(1, mid), expected, 1e-12);  // assigned cell unchanged
+    }
+
     if (cftest::failures == 0) std::printf("buoyancy: all checks passed\n");
     return cftest::failures;
 }

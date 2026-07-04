@@ -100,8 +100,10 @@ public:
     }
 
     void step() {
-        copyVelocityToExternal<Backend>(fluid_, temp_);  // fluid velocity -> temp advection
-        applyBuoyancy<Backend>(fluid_, temp_, params_);  // temperature -> fluid buoyancy force
+        // Apply buoyancy first so the advection velocity's Guo half-force uses
+        // the current-step force, not the previous step's.
+        applyBuoyancy<Backend>(fluid_, temp_, params_);  // temperature(t) -> fluid buoyancy force
+        copyVelocityToExternal<Backend>(fluid_, temp_);  // fluid velocity(t) -> temp advection
         cyberfluids::collide<Backend>(fluid_);
         streamFluid();
         std::swap(fluid_.populations(), fscratch_);
