@@ -26,7 +26,12 @@ namespace cyberfluids::solver {
 /// vanishes since w7 == w8), which matters for tight steady-state oracle
 /// comparisons. Zou/He is implemented and unit-tested as a velocity boundary
 /// (boundary::zouHeVelocityTop). See physical-models and boundary-conditions specs.
-template <class Backend = backend::Default, class T = double>
+/// The collision model is a template parameter (default BGK); any dynamics
+/// constructible from `omega` — BGK, TRT, MRT, regularized — runs through this
+/// solver unchanged (the moving-wall lid and bounce-back walls are collision-
+/// model-agnostic).
+template <class Backend = backend::Default, class T = double,
+          class Dyn = BGKdynamics<T, descriptors::D2Q9>>
 class LidDrivenCavity2D {
     using D = descriptors::D2Q9;
 
@@ -37,8 +42,8 @@ public:
           lidU_(lidVelocity),
           lattice_(nx, ny),
           scratch_(nx * ny),
-          bgk_(std::make_shared<BGKdynamics<T, D>>(omega)) {
-        lattice_.attributeDynamics(lattice_.getBoundingBox(), bgk_);
+          dyn_(std::make_shared<Dyn>(omega)) {
+        lattice_.attributeDynamics(lattice_.getBoundingBox(), dyn_);
         initEquilibrium(T(1), {T(0), T(0)});
     }
 
@@ -64,12 +69,12 @@ public:
 
     T density(std::int64_t x, std::int64_t y) {
         auto cell = lattice_.get(x, y);
-        return bgk_->computeDensity(cell);
+        return dyn_->computeDensity(cell);
     }
     std::array<T, 2> velocity(std::int64_t x, std::int64_t y) {
         auto cell = lattice_.get(x, y);
         std::array<T, 2> u{};
-        bgk_->computeVelocity(cell, u);
+        dyn_->computeVelocity(cell, u);
         return u;
     }
 
@@ -125,7 +130,7 @@ private:
     T lidU_;
     BlockLattice2D<T, D> lattice_;
     PopulationField<T, D> scratch_;
-    std::shared_ptr<BGKdynamics<T, D>> bgk_;
+    std::shared_ptr<Dyn> dyn_;
 };
 
 /// 3D lid-driven cavity on D3Q19: BGK bulk, no-slip bounce-back on five walls,

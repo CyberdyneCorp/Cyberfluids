@@ -8,9 +8,9 @@ Legend: ✅ implemented · 🟡 partial (MVP subset) · 📋 planned.
 | Capability | Summary | Status |
 |---|---|---|
 | [NumPP/SciPP foundation](../openspec/specs/numpp-scipp-foundation/spec.md) | All arrays/tensors via NumPP; scientific algorithms via SciPP; no generic third-party math libs | 🟡 NumPP integrated; SciPP wired, unused |
-| [Lattice descriptors](../openspec/specs/lattice-descriptors/spec.md) | Compile-time `DdQq` stencils, Concept-validated | 🟡 D2Q9, D3Q19 (D3Q27, D2Q5, D3Q7 planned) |
+| [Lattice descriptors](../openspec/specs/lattice-descriptors/spec.md) | Compile-time `DdQq` stencils, Concept-validated | 🟡 D2Q9, D3Q19, D3Q27, D2Q5, D3Q7 (external-field variants planned) |
 | [Core data structures](../openspec/specs/core-data-structures/spec.md) | `BlockLattice`, `Cell` views, scalar/tensor fields; smart-pointer ownership | ✅ Implemented |
-| [Collision dynamics](../openspec/specs/collision-dynamics/spec.md) | BGK, TRT, MRT, regularized, forced; `omega = 1/tau` | 🟡 BGK (TRT/MRT/regularized/forced planned) |
+| [Collision dynamics](../openspec/specs/collision-dynamics/spec.md) | BGK, TRT, MRT, regularized, forced; `omega = 1/tau` | 🟡 BGK · TRT · MRT (D2Q9) · regularized · forced (uniform) — MRT-3D & per-cell forcing planned |
 | [Streaming & time step](../openspec/specs/streaming-and-timestep/spec.md) | collide / stream / fused collideAndStream | ✅ Implemented |
 | [Boundary conditions](../openspec/specs/boundary-conditions/spec.md) | Bounce-back, Zou/He velocity, periodic, off-lattice STL | 🟡 bounce-back, moving-wall, Zou/He (top), periodic (STL/all-faces planned) |
 | [Hardware backends](../openspec/specs/hardware-backends/spec.md) | CPU `par_unseq`; optional CUDA / Metal / OpenCL / SYCL; no MPI | 🟡 CPU implemented; GPU stubs |

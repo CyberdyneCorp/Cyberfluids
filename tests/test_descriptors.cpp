@@ -7,8 +7,11 @@
 #include "testing.hpp"
 
 using cyberfluids::LatticeDescriptor;
+using cyberfluids::descriptors::D2Q5;
 using cyberfluids::descriptors::D2Q9;
 using cyberfluids::descriptors::D3Q19;
+using cyberfluids::descriptors::D3Q27;
+using cyberfluids::descriptors::D3Q7;
 
 namespace {
 
@@ -20,6 +23,9 @@ struct NotADescriptor {
 // The Concept must accept the real descriptors and reject a non-conforming type.
 static_assert(LatticeDescriptor<D2Q9>);
 static_assert(LatticeDescriptor<D3Q19>);
+static_assert(LatticeDescriptor<D3Q27>);
+static_assert(LatticeDescriptor<D2Q5>);
+static_assert(LatticeDescriptor<D3Q7>);
 static_assert(!LatticeDescriptor<NotADescriptor>);
 static_assert(!LatticeDescriptor<int>);
 
@@ -77,6 +83,9 @@ void check_descriptor() {
 int main() {
     check_descriptor<D2Q9>();
     check_descriptor<D3Q19>();
+    check_descriptor<D3Q27>();
+    check_descriptor<D2Q5>();
+    check_descriptor<D3Q7>();
 
     if (cftest::failures == 0)
         std::printf("descriptors: all checks passed\n");

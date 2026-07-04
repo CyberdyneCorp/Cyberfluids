@@ -15,3 +15,8 @@
 #include "cyberfluids/core/populations.hpp"
 #include "cyberfluids/core/fields.hpp"
 #include "cyberfluids/core/lattice.hpp"
+#include "cyberfluids/dynamics/bgk.hpp"
+#include "cyberfluids/dynamics/trt.hpp"
+#include "cyberfluids/dynamics/mrt.hpp"
+#include "cyberfluids/dynamics/regularized.hpp"
+#include "cyberfluids/dynamics/forced.hpp"

@@ -70,7 +70,86 @@ struct D3Q19 {
     };
 };
 
+/// D3Q27: 3D, 27 velocities (rest + 6 face + 12 edge + 8 corner). Better
+/// rotational isotropy than D3Q19.
+struct D3Q27 {
+    static constexpr int d = 3;
+    static constexpr int q = 27;
+    static constexpr int numPop = 27;
+    static constexpr double cs2 = 1.0 / 3.0;
+    static constexpr double invCs2 = 3.0;
+
+    static constexpr std::array<std::array<int, 3>, 27> c = {{
+        {{0, 0, 0}},
+        {{1, 0, 0}}, {{-1, 0, 0}}, {{0, 1, 0}}, {{0, -1, 0}}, {{0, 0, 1}}, {{0, 0, -1}},
+        {{1, 1, 0}}, {{-1, -1, 0}}, {{1, -1, 0}}, {{-1, 1, 0}},
+        {{1, 0, 1}}, {{-1, 0, -1}}, {{1, 0, -1}}, {{-1, 0, 1}},
+        {{0, 1, 1}}, {{0, -1, -1}}, {{0, 1, -1}}, {{0, -1, 1}},
+        {{1, 1, 1}}, {{-1, -1, -1}}, {{1, 1, -1}}, {{-1, -1, 1}},
+        {{1, -1, 1}}, {{-1, 1, -1}}, {{-1, 1, 1}}, {{1, -1, -1}},
+    }};
+
+    static constexpr std::array<int, 27> opposite = {
+        0, 2, 1, 4, 3, 6, 5, 8, 7, 10, 9, 12, 11, 14, 13,
+        16, 15, 18, 17, 20, 19, 22, 21, 24, 23, 26, 25,
+    };
+
+    static constexpr std::array<int, 27> cNormSqr = {
+        0, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3,
+    };
+
+    static constexpr std::array<double, 27> t = {
+        8.0 / 27.0,
+        2.0 / 27.0, 2.0 / 27.0, 2.0 / 27.0, 2.0 / 27.0, 2.0 / 27.0, 2.0 / 27.0,
+        1.0 / 54.0, 1.0 / 54.0, 1.0 / 54.0, 1.0 / 54.0, 1.0 / 54.0, 1.0 / 54.0,
+        1.0 / 54.0, 1.0 / 54.0, 1.0 / 54.0, 1.0 / 54.0, 1.0 / 54.0, 1.0 / 54.0,
+        1.0 / 216.0, 1.0 / 216.0, 1.0 / 216.0, 1.0 / 216.0,
+        1.0 / 216.0, 1.0 / 216.0, 1.0 / 216.0, 1.0 / 216.0,
+    };
+};
+
+/// D2Q5: 2D, 5 velocities — reduced stencil for scalar advection-diffusion
+/// (cs2 = 1/3).
+struct D2Q5 {
+    static constexpr int d = 2;
+    static constexpr int q = 5;
+    static constexpr int numPop = 5;
+    static constexpr double cs2 = 1.0 / 3.0;
+    static constexpr double invCs2 = 3.0;
+
+    static constexpr std::array<std::array<int, 2>, 5> c = {{
+        {{0, 0}}, {{1, 0}}, {{-1, 0}}, {{0, 1}}, {{0, -1}},
+    }};
+    static constexpr std::array<int, 5> opposite = {0, 2, 1, 4, 3};
+    static constexpr std::array<int, 5> cNormSqr = {0, 1, 1, 1, 1};
+    static constexpr std::array<double, 5> t = {
+        1.0 / 3.0, 1.0 / 6.0, 1.0 / 6.0, 1.0 / 6.0, 1.0 / 6.0,
+    };
+};
+
+/// D3Q7: 3D, 7 velocities — reduced stencil for scalar advection-diffusion
+/// (cs2 = 1/4, so the rest weight stays positive).
+struct D3Q7 {
+    static constexpr int d = 3;
+    static constexpr int q = 7;
+    static constexpr int numPop = 7;
+    static constexpr double cs2 = 1.0 / 4.0;
+    static constexpr double invCs2 = 4.0;
+
+    static constexpr std::array<std::array<int, 3>, 7> c = {{
+        {{0, 0, 0}}, {{1, 0, 0}}, {{-1, 0, 0}}, {{0, 1, 0}}, {{0, -1, 0}}, {{0, 0, 1}}, {{0, 0, -1}},
+    }};
+    static constexpr std::array<int, 7> opposite = {0, 2, 1, 4, 3, 6, 5};
+    static constexpr std::array<int, 7> cNormSqr = {0, 1, 1, 1, 1, 1, 1};
+    static constexpr std::array<double, 7> t = {
+        1.0 / 4.0, 1.0 / 8.0, 1.0 / 8.0, 1.0 / 8.0, 1.0 / 8.0, 1.0 / 8.0, 1.0 / 8.0,
+    };
+};
+
 static_assert(LatticeDescriptor<D2Q9>, "D2Q9 must satisfy LatticeDescriptor");
 static_assert(LatticeDescriptor<D3Q19>, "D3Q19 must satisfy LatticeDescriptor");
+static_assert(LatticeDescriptor<D3Q27>, "D3Q27 must satisfy LatticeDescriptor");
+static_assert(LatticeDescriptor<D2Q5>, "D2Q5 must satisfy LatticeDescriptor");
+static_assert(LatticeDescriptor<D3Q7>, "D3Q7 must satisfy LatticeDescriptor");
 
 }  // namespace cyberfluids::descriptors
