@@ -204,7 +204,7 @@ implementation, not specification. Legend: ✅ implemented · 🟡 partial (MVP 
 | Boundary conditions | [spec](openspec/specs/boundary-conditions/spec.md) | 🟡 bounce-back · moving-wall · Zou/He (top) · periodic (STL / all-faces planned) |
 | Hardware backends | [spec](openspec/specs/hardware-backends/spec.md) | 🟡 CPU + Metal (D2Q9 cavity, fp32) implemented; CUDA/OpenCL stubs |
 | Physical models | [spec](openspec/specs/physical-models/spec.md) | 🟡 Navier-Stokes cavity + AD transport + thermal Boussinesq + Shan-Chen multiphase; porous planned |
-| Geometry & I/O | [spec](openspec/specs/geometry-and-io/spec.md) | 🟡 VTK output (ParaView) + centerline CSV; STL/checkpoint planned |
+| Geometry & I/O | [spec](openspec/specs/geometry-and-io/spec.md) | 🟡 VTK + checkpoint/restart + centerline CSV; STL/voxelization planned |
 | Language bindings (Python · Swift) | [spec](openspec/specs/language-bindings/spec.md) | ✅ both, over a shared C ABI |
 | Platform support | [spec](openspec/specs/platform-support/spec.md) | 🟡 desktop/server (iOS · Android toolchains planned) |
 | Oracle validation | [spec (delta)](openspec/changes/bootstrap-cyberfluids-core/specs/oracle-validation/spec.md) | ✅ 2D cavity vs Palabos (~0.8% RMS of U); 3D planned |

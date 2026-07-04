@@ -46,3 +46,6 @@ find_package(TBB REQUIRED)
 
 add_executable(cavity2d_oracle cavity2d_oracle.cpp)
 target_link_libraries(cavity2d_oracle palabos TBB::tbb)
+
+add_executable(cavity3d_oracle cavity3d_oracle.cpp)
+target_link_libraries(cavity3d_oracle palabos TBB::tbb)

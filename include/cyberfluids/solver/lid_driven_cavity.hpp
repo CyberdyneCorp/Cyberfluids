@@ -67,6 +67,9 @@ public:
     std::int64_t nx() const { return nx_; }
     std::int64_t ny() const { return ny_; }
 
+    /// Access the underlying lattice (e.g. for checkpoint/restart).
+    BlockLattice2D<T, D>& lattice() { return lattice_; }
+
     T density(std::int64_t x, std::int64_t y) {
         auto cell = lattice_.get(x, y);
         return dyn_->computeDensity(cell);
@@ -173,6 +176,9 @@ public:
     std::int64_t nx() const { return nx_; }
     std::int64_t ny() const { return ny_; }
     std::int64_t nz() const { return nz_; }
+
+    /// Access the underlying lattice (e.g. for checkpoint/restart).
+    BlockLattice3D<T, D>& lattice() { return lattice_; }
 
     T density(std::int64_t x, std::int64_t y, std::int64_t z) {
         auto cell = lattice_.get(x, y, z);

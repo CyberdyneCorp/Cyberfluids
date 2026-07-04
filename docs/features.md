@@ -16,7 +16,7 @@ Legend: ✅ implemented · 🟡 partial (MVP subset) · 📋 planned.
 | [Boundary conditions](../openspec/specs/boundary-conditions/spec.md) | Bounce-back, Zou/He velocity, periodic, off-lattice STL | 🟡 bounce-back, moving-wall, Zou/He (top), periodic (STL/all-faces planned) |
 | [Hardware backends](../openspec/specs/hardware-backends/spec.md) | CPU `par_unseq`; optional CUDA / Metal / OpenCL / SYCL; no MPI | 🟡 CPU + Metal (D2Q9 BGK cavity, fp32) implemented; CUDA/OpenCL stubs |
 | [Physical models](../openspec/specs/physical-models/spec.md) | Navier-Stokes, Shan-Chen multiphase, porous media, thermal | 🟡 Navier-Stokes cavity + AD transport + thermal Boussinesq + Shan-Chen multiphase (single-component); porous planned |
-| [Geometry & I/O](../openspec/specs/geometry-and-io/spec.md) | STL import + voxelization, VTK output, checkpoint/restart | 🟡 VTK output (ParaView) + centerline CSV; STL/voxelization + checkpoint planned |
+| [Geometry & I/O](../openspec/specs/geometry-and-io/spec.md) | STL import + voxelization, VTK output, checkpoint/restart | 🟡 VTK output + checkpoint/restart + centerline CSV; STL/voxelization planned |
 | [Language bindings](../openspec/specs/language-bindings/spec.md) | Python (NumPy interop) and Swift | ✅ Both, over a shared C ABI |
 | [Platform support](../openspec/specs/platform-support/spec.md) | Desktop/server, iOS/iPadOS, Android NDK | 🟡 desktop/server (mobile toolchains planned) |
 

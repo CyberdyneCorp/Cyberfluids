@@ -64,3 +64,28 @@ Notes:
 - libc++ gates the parallel STL behind `-fexperimental-library`; the CMake adds it
   automatically when the compiler supports it (Palabos uses `std::execution::par_unseq`).
 - Requires TBB (`brew install tbb`).
+
+## 3D reference (cavity3d)
+
+- `cavity3d_palabos.csv` — steady-ish centerline velocities from a Palabos **D3Q19** lid-driven
+  cavity matched to `LidDrivenCavity3D`.
+
+| Parameter | Value |
+|---|---|
+| Descriptor | D3Q19 |
+| Grid | 20 × 20 × 20 |
+| Lid velocity `U` | 0.05 (top z-face interior, +x) |
+| Relaxation | `omega = 1/0.6` (`nu = 1/30`, Re = U·N/nu = 30) |
+| Iterations | 8 000 (developed flow; both codes compared at the same step) |
+
+- Compared quantities: `u_x, u_y, u_z` along the vertical (z through the box centre) and
+  horizontal (x through the centre) centerlines, **interior nodes only**, normalized by `U`.
+- Tolerances: **L∞ ≤ 0.16**, **L2 ≤ 0.03**. Observed **L∞ ≈ 0.13** (at the interior node just
+  below the lid, where moving-wall bounce-back and the Palabos interp BC differ most —
+  proportionally larger at this coarse N) and **L2 ≈ 0.018** (bulk RMS, the real quality signal).
+- **Build note:** the Palabos 3D umbrella `palabos3D.hh` does not compile under AppleClang 17
+  (a parallel `std::exclusive_scan` in `atomicAcceleratedLattice3D.hh` — unimplemented in libc++'s
+  partial PSTL — and a `.clone()`-on-pointer bug in `offLatticeBoundaryCondition3D.hh`). Neither
+  module is needed for a BGK cavity, so `cavity3d_oracle.cpp` includes a reduced set of module
+  headers (and the individual `atomicBlock` headers minus the accelerated lattice). Regenerate as
+  for 2D: build `cavity3d_oracle`, run it, copy `cavity3d_palabos.csv` here.
