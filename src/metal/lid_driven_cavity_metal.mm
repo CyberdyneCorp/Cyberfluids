@@ -41,12 +41,12 @@ constant int opp[9]  = {0, 3, 4, 1, 2, 7, 8, 5, 6};
 kernel void collide_bgk(device float* f [[buffer(0)]],
                         constant CavityParams& p [[buffer(1)]],
                         uint gid [[thread_position_in_grid]]) {
-    uint n = p.nx * p.ny;
+    ulong n = (ulong)p.nx * (ulong)p.ny;  // 64-bit indexing (matches host)
     if (gid >= n) return;
     float fi[9];
     float rho = 0.0, jx = 0.0, jy = 0.0;
     for (int i = 0; i < 9; ++i) {
-        fi[i] = f[i * n + gid];
+        fi[i] = f[(ulong)i * n + gid];
         rho += fi[i];
         jx += fi[i] * cx[i];
         jy += fi[i] * cy[i];
@@ -57,7 +57,7 @@ kernel void collide_bgk(device float* f [[buffer(0)]],
     for (int i = 0; i < 9; ++i) {
         float ciu = cx[i] * ux + cy[i] * uy;
         float feq = w[i] * rho * (1.0 + 3.0 * ciu + 4.5 * ciu * ciu - 1.5 * uSqr);
-        f[i * n + gid] = fi[i] - p.omega * (fi[i] - feq);
+        f[(ulong)i * n + gid] = fi[i] - p.omega * (fi[i] - feq);
     }
 }
 
@@ -65,7 +65,7 @@ kernel void stream_cavity(device const float* src [[buffer(0)]],
                           device float* dst [[buffer(1)]],
                           constant CavityParams& p [[buffer(2)]],
                           uint gid [[thread_position_in_grid]]) {
-    uint n = p.nx * p.ny;
+    ulong n = (ulong)p.nx * (ulong)p.ny;  // 64-bit indexing (matches host)
     if (gid >= n) return;
     int nx = int(p.nx), ny = int(p.ny);
     int y = int(gid) % ny;
@@ -75,12 +75,12 @@ kernel void stream_cavity(device const float* src [[buffer(0)]],
         int sx = x - cx[i];
         int sy = y - cy[i];
         if (sx >= 0 && sx < nx && sy >= 0 && sy < ny) {
-            dst[i * n + gid] = src[i * n + uint(sx * ny + sy)];
+            dst[(ulong)i * n + gid] = src[(ulong)i * n + (ulong)(sx * ny + sy)];
         } else if (topInterior && cy[i] == -1) {
             // moving-wall bounce-back: noSlip + 2 w_i rho0 invCs2 (c_i . uWall), rho0=1, invCs2=3
-            dst[i * n + gid] = src[opp[i] * n + gid] + 2.0 * w[i] * 3.0 * (cx[i] * p.lidU);
+            dst[(ulong)i * n + gid] = src[(ulong)opp[i] * n + gid] + 2.0 * w[i] * 3.0 * (cx[i] * p.lidU);
         } else {
-            dst[i * n + gid] = src[opp[i] * n + gid];  // no-slip wall
+            dst[(ulong)i * n + gid] = src[(ulong)opp[i] * n + gid];  // no-slip wall
         }
     }
 }
@@ -149,32 +149,36 @@ MetalLidDrivenCavity2D::MetalLidDrivenCavity2D(std::int64_t nx, std::int64_t ny,
 MetalLidDrivenCavity2D::~MetalLidDrivenCavity2D() = default;
 
 void MetalLidDrivenCavity2D::step() {
-    const NSUInteger n = static_cast<NSUInteger>(impl_->ncells);
-    NSUInteger tpg = std::min<NSUInteger>(impl_->collidePipe.maxTotalThreadsPerThreadgroup, 256);
-    MTLSize grid = MTLSizeMake(n, 1, 1);
-    MTLSize tg = MTLSizeMake(tpg, 1, 1);
+    // Drain the per-step autoreleased command buffer + encoders (this is driven
+    // from plain C++ threads with no ambient autorelease pool).
+    @autoreleasepool {
+        const NSUInteger n = static_cast<NSUInteger>(impl_->ncells);
+        NSUInteger tpg = std::min<NSUInteger>(impl_->collidePipe.maxTotalThreadsPerThreadgroup, 256);
+        MTLSize grid = MTLSizeMake(n, 1, 1);
+        MTLSize tg = MTLSizeMake(tpg, 1, 1);
 
-    id<MTLCommandBuffer> cb = [impl_->queue commandBuffer];
+        id<MTLCommandBuffer> cb = [impl_->queue commandBuffer];
 
-    id<MTLComputeCommandEncoder> e1 = [cb computeCommandEncoder];
-    [e1 setComputePipelineState:impl_->collidePipe];
-    [e1 setBuffer:impl_->popSrc offset:0 atIndex:0];
-    [e1 setBytes:&impl_->params length:sizeof(CavityParams) atIndex:1];
-    [e1 dispatchThreads:grid threadsPerThreadgroup:tg];
-    [e1 endEncoding];
+        id<MTLComputeCommandEncoder> e1 = [cb computeCommandEncoder];
+        [e1 setComputePipelineState:impl_->collidePipe];
+        [e1 setBuffer:impl_->popSrc offset:0 atIndex:0];
+        [e1 setBytes:&impl_->params length:sizeof(CavityParams) atIndex:1];
+        [e1 dispatchThreads:grid threadsPerThreadgroup:tg];
+        [e1 endEncoding];
 
-    id<MTLComputeCommandEncoder> e2 = [cb computeCommandEncoder];
-    [e2 setComputePipelineState:impl_->streamPipe];
-    [e2 setBuffer:impl_->popSrc offset:0 atIndex:0];
-    [e2 setBuffer:impl_->popDst offset:0 atIndex:1];
-    [e2 setBytes:&impl_->params length:sizeof(CavityParams) atIndex:2];
-    [e2 dispatchThreads:grid threadsPerThreadgroup:tg];
-    [e2 endEncoding];
+        id<MTLComputeCommandEncoder> e2 = [cb computeCommandEncoder];
+        [e2 setComputePipelineState:impl_->streamPipe];
+        [e2 setBuffer:impl_->popSrc offset:0 atIndex:0];
+        [e2 setBuffer:impl_->popDst offset:0 atIndex:1];
+        [e2 setBytes:&impl_->params length:sizeof(CavityParams) atIndex:2];
+        [e2 dispatchThreads:grid threadsPerThreadgroup:tg];
+        [e2 endEncoding];
 
-    [cb commit];
-    [cb waitUntilCompleted];
+        [cb commit];
+        [cb waitUntilCompleted];
 
-    std::swap(impl_->popSrc, impl_->popDst);
+        std::swap(impl_->popSrc, impl_->popDst);
+    }
 }
 
 void MetalLidDrivenCavity2D::run(std::int64_t steps) {
