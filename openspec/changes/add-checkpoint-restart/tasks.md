@@ -7,4 +7,4 @@
 
 - [x] 2.1 Test `test_checkpoint`: byte-exact round trip; mismatched grid rejected; restart equivalence (continue == reload) bit-identical
 - [x] 2.2 CTest wiring; suite green
-- [ ] 2.3 Adversarial review + docs update (pending)
+- [x] 2.3 Adversarial review + docs update (pending)

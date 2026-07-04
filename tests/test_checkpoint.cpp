@@ -53,7 +53,23 @@ int main() {
         CF_CHECK(threw);
     }
 
-    // (3) Restart equivalence: continue-from-memory == reload-from-disk.
+    // (3) Geometry mismatch (same ncells, different shape) is rejected by the
+    //     lattice-level overload (regression for the review finding).
+    {
+        using Cav2 = cyberfluids::solver::LidDrivenCavity2D<>;
+        Cav2 a(10, 10, 1.0 / 0.6, 0.05);  // ncells = 100
+        cyberfluids::io::saveCheckpoint(path, a.lattice());
+        Cav2 b(5, 20, 1.0 / 0.6, 0.05);   // also ncells = 100, different shape
+        bool threw = false;
+        try {
+            cyberfluids::io::loadCheckpoint(path, b.lattice());
+        } catch (const std::runtime_error&) {
+            threw = true;
+        }
+        CF_CHECK(threw);
+    }
+
+    // (4) Restart equivalence: continue-from-memory == reload-from-disk.
     {
         using Cav = cyberfluids::solver::LidDrivenCavity3D<>;
         const std::int64_t N = 16;
@@ -61,11 +77,11 @@ int main() {
 
         Cav cav1(N, N, N, omega, U);
         cav1.run(100);
-        cyberfluids::io::saveCheckpoint(path, cav1.lattice().populations());
+        cyberfluids::io::saveCheckpoint(path, cav1.lattice());  // geometry-aware
         cav1.run(50);  // continue to step 150
 
         Cav cav2(N, N, N, omega, U);
-        cyberfluids::io::loadCheckpoint(path, cav2.lattice().populations());  // restore step 100
+        cyberfluids::io::loadCheckpoint(path, cav2.lattice());  // restore step 100
         cav2.run(50);  // continue to step 150
 
         CF_CHECK(identical(cav1.lattice().populations(), cav2.lattice().populations()));

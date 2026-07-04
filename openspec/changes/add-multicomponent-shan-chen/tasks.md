@@ -10,4 +10,4 @@
 
 - [x] 3.1 Test `test_multi_component_shan_chen`: exact cross-force incl. periodic wrap; uniform-other → zero; de-mixing (G super) vs homogeneous (G sub); per-species mass conserved
 - [x] 3.2 CTest wiring; suite green
-- [ ] 3.3 Adversarial review + docs update (pending)
+- [x] 3.3 Adversarial review + docs update (pending)
