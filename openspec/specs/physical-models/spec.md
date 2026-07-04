@@ -19,14 +19,23 @@ standard boundary conditions, with kinematic viscosity set through `omega`.
   by `omega` and the lid velocity
 
 ### Requirement: Multi-component / multi-phase fluids
-The library SHALL provide Shan-Chen pseudopotential coupling (single- and multi-component)
-with selectable interparticle potential functions, enabling immiscible fluids (e.g.
-oil/water) to separate under the interparticle force.
+The library SHALL provide Shan-Chen pseudopotential multiphase. The single-component model SHALL
+compute a non-local interaction force `F(x) = -G psi(rho(x)) sum_i w_i psi(rho(x+c_i)) c_i`
+(pseudopotential `psi(rho) = rho0 (1 - e^{-rho/rho0})`, weights `w_i = t_i`) and apply it
+through the per-cell external body force, producing an equation of state
+`p = cs2 rho + (cs2 G / 2) psi^2` whose mechanical instability (`|G| > 4/rho0`) drives
+liquid/vapour separation with surface tension. Multi-component coupling remains a future extension.
 
-#### Scenario: Two immiscible fluids separate
-- **WHEN** two components are coupled by a Shan-Chen interaction above the critical
-  interaction strength
-- **THEN** the components SHALL de-mix and form an interface with surface tension
+#### Scenario: Single-component phase separation
+- **GIVEN** a periodic domain seeded near a uniform density with small noise
+- **WHEN** `G` is above the critical magnitude (`|G| > 4/rho0`)
+- **THEN** the fluid SHALL spontaneously de-mix into high-density (liquid) and low-density
+  (vapour) regions; and WHEN `|G|` is below critical it SHALL remain homogeneous
+
+#### Scenario: Surface tension (Laplace law)
+- **GIVEN** a liquid droplet of radius R at equilibrium
+- **THEN** the pressure jump across the interface SHALL be linear in `1/R`, with slope equal to
+  the surface tension
 
 ### Requirement: Porous media (partial bounce-back)
 The library SHALL provide partial (partially-saturated) bounce-back dynamics so flow
