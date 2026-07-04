@@ -70,6 +70,9 @@ public:
     PopulationField<T, Descriptor>& populations() { return pop_; }
     const PopulationField<T, Descriptor>& populations() const { return pop_; }
 
+    /// Build a Cell view from a linear cell index (0 <= c < ncells).
+    CellType cellByIndex(std::int64_t c) { return cellAt(c); }
+
     /// Assign a collision model to every cell in `box`. The lattice keeps the
     /// shared_ptr alive; cells hold a non-owning pointer to it.
     void attributeDynamics(const Box<Dim>& box, std::shared_ptr<DynamicsType> dynamics) {

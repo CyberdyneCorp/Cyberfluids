@@ -25,9 +25,9 @@
 ## 4. Collision & time step
 
 - [x] 4.1 Define abstract `Dynamics<T,Descriptor>` interface (collide, computeEquilibrium, moments, get/setOmega, traits) — needed by `Cell`
-- [ ] 4.2 Implement `BGKdynamics(omega)` with second-order equilibrium; verify `nu = cs2*(1/omega - 1/2)`
-- [ ] 4.3 Implement `collide()`, `stream()`, and fused `collideAndStream()` over C++20 Ranges
-- [ ] 4.4 Unit-test: fused vs separate produce identical fields; equilibrium recovers imposed rho/u
+- [x] 4.2 Implement `BGKdynamics(omega)` with second-order equilibrium; verify `nu = cs2*(1/omega - 1/2)`
+- [x] 4.3 Implement `collide()`, `streamPeriodic()`, and fused `collideAndStream()` (backend-dispatched over an index range)
+- [x] 4.4 Unit-test: fused vs separate identical; equilibrium recovers rho/u; collide conserves mass/momentum
 
 ## 5. Boundary conditions
 
@@ -39,10 +39,10 @@
 
 ## 6. CPU backend
 
-- [ ] 6.1 Define the backend abstraction seam (kernel-launch interface, runtime selection)
-- [ ] 6.2 Implement the CPU backend using `std::execution::par_unseq` with a serial fallback
-- [ ] 6.3 Add GPU backend stubs behind flags (no kernels yet) to lock the seam
-- [ ] 6.4 Verify collide-and-stream loop body is backend-agnostic
+- [x] 6.1 Define the backend abstraction seam (`Backend::forEachIndex(n, f)`; `backend::Default`)
+- [x] 6.2 Implement the CPU backend using `std::execution::par_unseq` (guarded by `__cpp_lib_parallel_algorithm`) with a serial fallback
+- [x] 6.3 Add GPU backend stubs (CUDA/Metal/OpenCL/SYCL) behind feature-flag defines to lock the seam
+- [x] 6.4 Verify collide-and-stream loop body is backend-agnostic (templated on `Backend`; CPU covers all indices — test)
 
 ## 7. Lid-driven cavity example (Navier-Stokes)
 
