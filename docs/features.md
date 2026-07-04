@@ -14,7 +14,7 @@ Legend: ✅ implemented · 🟡 partial (MVP subset) · 📋 planned.
 | [Collision dynamics](../openspec/specs/collision-dynamics/spec.md) | BGK, TRT, MRT, regularized, forced, advection-diffusion; `omega = 1/tau` | 🟡 BGK · TRT · MRT (D2Q9) · regularized · forced (uniform + per-cell) · advection-diffusion; MRT-3D planned |
 | [Streaming & time step](../openspec/specs/streaming-and-timestep/spec.md) | collide / stream / fused collideAndStream | ✅ Implemented |
 | [Boundary conditions](../openspec/specs/boundary-conditions/spec.md) | Bounce-back, Zou/He velocity, periodic, off-lattice STL | 🟡 bounce-back, moving-wall, Zou/He (top), periodic (STL/all-faces planned) |
-| [Hardware backends](../openspec/specs/hardware-backends/spec.md) | CPU `par_unseq`; optional CUDA / Metal / OpenCL / SYCL; no MPI | 🟡 CPU implemented; GPU stubs |
+| [Hardware backends](../openspec/specs/hardware-backends/spec.md) | CPU `par_unseq`; optional CUDA / Metal / OpenCL / SYCL; no MPI | 🟡 CPU + Metal (D2Q9 BGK cavity, fp32) implemented; CUDA/OpenCL stubs |
 | [Physical models](../openspec/specs/physical-models/spec.md) | Navier-Stokes, Shan-Chen multiphase, porous media, thermal | 🟡 Navier-Stokes cavity + AD transport + thermal Boussinesq + Shan-Chen multiphase (single-component); porous planned |
 | [Geometry & I/O](../openspec/specs/geometry-and-io/spec.md) | STL import + voxelization, VTK output, checkpoint/restart | 🟡 VTK output (ParaView) + centerline CSV; STL/voxelization + checkpoint planned |
 | [Language bindings](../openspec/specs/language-bindings/spec.md) | Python (NumPy interop) and Swift | ✅ Both, over a shared C ABI |

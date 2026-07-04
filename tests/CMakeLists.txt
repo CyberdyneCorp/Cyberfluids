@@ -19,6 +19,14 @@ if(CYBERFLUIDS_HAVE_NUMPP)
         add_test(NAME ${_t} COMMAND test_${_t})
     endforeach()
 
+    # Metal GPU cavity test — built only when the Metal backend is present.
+    if(CYBERFLUIDS_HAVE_METAL)
+        add_executable(test_metal_cavity test_metal_cavity.cpp)
+        target_link_libraries(test_metal_cavity PRIVATE cyberfluids_core numpp::numpp cyberfluids_metal)
+        target_include_directories(test_metal_cavity PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+        add_test(NAME metal_cavity COMMAND test_metal_cavity)
+    endif()
+
     # Palabos oracle regression — built only when the stored reference exists.
     set(_oracle_ref "${CMAKE_CURRENT_SOURCE_DIR}/oracle/cavity2d_palabos.csv")
     if(EXISTS "${_oracle_ref}")

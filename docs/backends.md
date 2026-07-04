@@ -26,7 +26,7 @@ flowchart LR
 |---|---|---|---|
 | **CPU** | x86-64 (AVX-512), ARM64 (Neon) | on by default | ✅ Implemented — `std::execution::par_unseq` (guarded by `__cpp_lib_parallel_algorithm`) with a serial fallback |
 | **CUDA** | NVIDIA GeForce / Quadro / Tesla | `-DCYBERFLUIDS_CUDA=ON` | 📋 Stub — seam locked, no device kernels yet |
-| **Metal** | Apple Silicon (Mac, iPad) | `-DCYBERFLUIDS_METAL=ON` | 📋 Stub — seam locked (metal-cpp planned) |
+| **Metal** | Apple Silicon (Mac, iPad) | `-DCYBERFLUIDS_METAL=ON` | ✅ D2Q9 BGK cavity (fp32) — Objective-C++ + runtime MSL kernels |
 | **OpenCL / SYCL** | AMD, Intel, integrated GPUs | `-DCYBERFLUIDS_OPENCL=ON` | 📋 Stub — seam locked |
 
 ## Guarantees

@@ -68,6 +68,9 @@ if(CYBERFLUIDS_HAVE_NUMPP)
         BUILD_RPATH "${CYBERFLUIDS_DEPS_PREFIX}/lib")
 endif()
 
+# Optional Apple Metal GPU backend (defines cyberfluids_metal + CYBERFLUIDS_HAVE_METAL).
+include(cmake/CyberfluidsMetal.cmake)
+
 if(CYBERFLUIDS_BUILD_TESTS)
     enable_testing()
     add_subdirectory(tests)

@@ -122,10 +122,11 @@ Run the demos and the Palabos-oracle regression directly:
 ctest --test-dir build -R oracle_cavity --output-on-failure
 ```
 
-Enable an optional GPU backend flag (backends are stubs today — CPU is the working path):
+Enable the **Metal** GPU backend (Apple Silicon) — a D2Q9 BGK lid-driven cavity on the GPU,
+validated to match the CPU solver (CUDA/OpenCL are still stubs):
 
 ```bash
-cmake -B build -DCYBERFLUIDS_METAL=ON            # or -DCYBERFLUIDS_CUDA=ON / -DCYBERFLUIDS_OPENCL=ON
+cmake -B build -DCYBERFLUIDS_METAL=ON            # builds cyberfluids_metal + the metal_cavity test
 ```
 
 ## 💻 Examples
@@ -184,7 +185,7 @@ See [`bindings/README.md`](bindings/README.md) for building and linking the bind
 |---|---|---|
 | **CPU** (`std::execution::par_unseq`) | All x86-64 (AVX-512) & ARM64 (Neon) | ✅ Implemented (par_unseq + serial fallback) |
 | **CUDA** | NVIDIA GeForce / Quadro / Tesla | 📋 Stub (seam locked) |
-| **Metal** (metal-cpp) | Apple Silicon (Mac, iPad) | 📋 Stub (seam locked) |
+| **Metal** | Apple Silicon (Mac, iPad) | ✅ D2Q9 BGK cavity (fp32) — Objective-C++ + MSL |
 | **OpenCL / SYCL** | AMD, Intel, integrated GPUs | 📋 Stub (seam locked) |
 
 ## 📊 Feature status
@@ -201,7 +202,7 @@ implementation, not specification. Legend: ✅ implemented · 🟡 partial (MVP 
 | Collision dynamics | [spec](openspec/specs/collision-dynamics/spec.md) | 🟡 BGK · TRT · MRT (D2Q9) · regularized · forced (uniform + per-cell) · advection-diffusion; MRT-3D planned |
 | Streaming & time step | [spec](openspec/specs/streaming-and-timestep/spec.md) | ✅ collide / stream / fused collideAndStream |
 | Boundary conditions | [spec](openspec/specs/boundary-conditions/spec.md) | 🟡 bounce-back · moving-wall · Zou/He (top) · periodic (STL / all-faces planned) |
-| Hardware backends | [spec](openspec/specs/hardware-backends/spec.md) | 🟡 CPU implemented; GPU backends stubbed |
+| Hardware backends | [spec](openspec/specs/hardware-backends/spec.md) | 🟡 CPU + Metal (D2Q9 cavity, fp32) implemented; CUDA/OpenCL stubs |
 | Physical models | [spec](openspec/specs/physical-models/spec.md) | 🟡 Navier-Stokes cavity + AD transport + thermal Boussinesq + Shan-Chen multiphase; porous planned |
 | Geometry & I/O | [spec](openspec/specs/geometry-and-io/spec.md) | 🟡 VTK output (ParaView) + centerline CSV; STL/checkpoint planned |
 | Language bindings (Python · Swift) | [spec](openspec/specs/language-bindings/spec.md) | ✅ both, over a shared C ABI |
