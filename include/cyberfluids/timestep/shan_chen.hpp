@@ -35,7 +35,7 @@ void computeDensityField(FluidLattice& fluid, typename FluidLattice::ValueType* 
 
 /// Non-local Shan-Chen interaction force (2D, periodic wrap), written into the
 /// fluid's per-cell external force slots (consumed by ExternalForceBGKdynamics):
-///   F(x) = -G psi(rho(x)) * sum_{i>0} w_i psi(rho(x+c_i)) c_i,  w_i = invCs2 * t_i.
+///   F(x) = -G psi(rho(x)) * sum_{i>0} w_i psi(rho(x+c_i)) c_i,  w_i = t_i.
 /// `rho` is the density field from computeDensityField.
 /// See openspec/specs/physical-models/spec.md.
 template <class Backend = backend::Default, class FluidLattice>

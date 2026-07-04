@@ -4,7 +4,7 @@
 
 ## 2. Interaction force
 
-- [x] 2.1 Add `timestep/shan_chen.hpp`: `ShanChenParameters<T>{G, rho0}`, `computeDensityField<Backend>(fluid, rho*)`, `applyShanChenForce<Backend>(fluid, rho*, params)` (non-local, periodic wrap, `w_i = invCs2*t_i`, writes external force)
+- [x] 2.1 Add `timestep/shan_chen.hpp`: `ShanChenParameters<T>{G, rho0}`, `computeDensityField<Backend>(fluid, rho*)`, `applyShanChenForce<Backend>(fluid, rho*, params)` (non-local, periodic wrap, `w_i = t_i`, writes external force)
 - [x] 2.2 Test `test_shan_chen`: exact force incl. periodic-wrap neighbour (analytic); uniform density → zero force
 
 ## 3. Solver + phase separation

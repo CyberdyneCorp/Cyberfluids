@@ -3,7 +3,7 @@
 ### Requirement: Multi-component / multi-phase fluids
 The library SHALL provide Shan-Chen pseudopotential multiphase. The single-component model SHALL
 compute a non-local interaction force `F(x) = -G psi(rho(x)) sum_i w_i psi(rho(x+c_i)) c_i`
-(pseudopotential `psi(rho) = rho0 (1 - e^{-rho/rho0})`, weights `w_i = invCs2 * t_i`) and apply it
+(pseudopotential `psi(rho) = rho0 (1 - e^{-rho/rho0})`, weights `w_i = t_i`) and apply it
 through the per-cell external body force, producing an equation of state
 `p = cs2 rho + (cs2 G / 2) psi^2` whose mechanical instability (`|G| > 4/rho0`) drives
 liquid/vapour separation with surface tension. Multi-component coupling remains a future extension.

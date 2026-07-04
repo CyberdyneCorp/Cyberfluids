@@ -12,7 +12,7 @@ phase separation and surface tension — the "oil and water" headline in single-
   the equation-of-state pressure `p = cs2 rho + (cs2 G / 2) psi^2`.
 - Add `timestep/shan_chen.hpp`: `computeDensityField` and a non-local, periodic-wrap
   `applyShanChenForce<Backend>` writing `F(x) = -G psi(rho(x)) sum_i w_i psi(rho(x+c_i)) c_i`
-  (SC weights `w_i = invCs2 * t_i`) into the fluid's per-cell external force.
+  (SC weights `w_i = t_i`) into the fluid's per-cell external force.
 - Add `solver/shan_chen_2d.hpp`: `ShanChen2D` (ForcedD2Q9 + ExternalForceBGKdynamics, fully
   periodic; step = density field → interaction force → collide → stream).
 - Validate: exact force (incl. periodic wrap); homogeneity → zero force; spontaneous separation
