@@ -5,7 +5,7 @@
 **A next-generation, zero-legacy Computational Fluid Dynamics engine — the Lattice Boltzmann Method in pure, modern C++20.**
 
 ![status](https://img.shields.io/badge/status-alpha-orange)
-![tests](https://img.shields.io/badge/tests-12%2F12%20passing-brightgreen)
+![tests](https://img.shields.io/badge/tests-24%2F24%20passing-brightgreen)
 ![oracle](https://img.shields.io/badge/Palabos%20oracle-~0.8%25%20RMS-brightgreen)
 ![C++](https://img.shields.io/badge/C%2B%2B-20-blue)
 ![backends](https://img.shields.io/badge/backends-CPU%20%7C%20CUDA%20%7C%20Metal%20%7C%20OpenCL%2FSYCL-informational)
@@ -109,7 +109,7 @@ cd Cyberfluids
 scripts/bootstrap_deps.sh                        # build + install NumPP into .deps/
 cmake -B build -DCMAKE_BUILD_TYPE=Release        # CPU backend on by default
 cmake --build build -j
-ctest --test-dir build                           # 12 tests: core, cavity, Palabos oracle, bindings
+ctest --test-dir build                           # full suite: core, cavity, oracle, thermal, multiphase, bindings
 ```
 
 `scripts/bootstrap_deps.sh` expects a NumPP checkout beside this repo (or pass its path);
@@ -202,7 +202,7 @@ implementation, not specification. Legend: ✅ implemented · 🟡 partial (MVP 
 | Streaming & time step | [spec](openspec/specs/streaming-and-timestep/spec.md) | ✅ collide / stream / fused collideAndStream |
 | Boundary conditions | [spec](openspec/specs/boundary-conditions/spec.md) | 🟡 bounce-back · moving-wall · Zou/He (top) · periodic (STL / all-faces planned) |
 | Hardware backends | [spec](openspec/specs/hardware-backends/spec.md) | 🟡 CPU implemented; GPU backends stubbed |
-| Physical models | [spec](openspec/specs/physical-models/spec.md) | 🟡 Navier-Stokes cavity + AD transport + thermal Boussinesq (Rayleigh-Bénard, two-way); multiphase/porous planned |
+| Physical models | [spec](openspec/specs/physical-models/spec.md) | 🟡 Navier-Stokes cavity + AD transport + thermal Boussinesq + Shan-Chen multiphase; porous planned |
 | Geometry & I/O | [spec](openspec/specs/geometry-and-io/spec.md) | 🟡 VTK output (ParaView) + centerline CSV; STL/checkpoint planned |
 | Language bindings (Python · Swift) | [spec](openspec/specs/language-bindings/spec.md) | ✅ both, over a shared C ABI |
 | Platform support | [spec](openspec/specs/platform-support/spec.md) | 🟡 desktop/server (iOS · Android toolchains planned) |

@@ -25,4 +25,6 @@
 #include "cyberfluids/dynamics/advection_diffusion.hpp"
 #include "cyberfluids/timestep/coupling.hpp"
 #include "cyberfluids/timestep/buoyancy.hpp"
+#include "cyberfluids/timestep/shan_chen.hpp"
+#include "cyberfluids/physics/shan_chen_eos.hpp"
 #include "cyberfluids/io/vtk_writer.hpp"
