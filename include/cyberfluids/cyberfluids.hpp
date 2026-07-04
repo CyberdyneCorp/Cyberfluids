@@ -24,3 +24,5 @@
 #include "cyberfluids/dynamics/forced.hpp"
 #include "cyberfluids/dynamics/advection_diffusion.hpp"
 #include "cyberfluids/timestep/coupling.hpp"
+#include "cyberfluids/timestep/buoyancy.hpp"
+#include "cyberfluids/io/vtk_writer.hpp"
