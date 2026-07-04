@@ -22,6 +22,7 @@ endif()
 # Options
 # -----------------------------------------------------------------------------
 option(CYBERFLUIDS_BUILD_TESTS "Build the test suite" ON)
+option(CYBERFLUIDS_BUILD_EXAMPLES "Build the example demos" ON)
 
 # Backend feature flags. The CPU backend is the always-on, mobile-friendly
 # baseline. GPU backends are OFF by default; absence of a GPU toolkit never
@@ -57,6 +58,11 @@ target_compile_features(cyberfluids_core INTERFACE cxx_std_20)
 if(CYBERFLUIDS_BUILD_TESTS)
     enable_testing()
     add_subdirectory(tests)
+endif()
+
+# Examples use the NumPP-backed solver, so they need NumPP present.
+if(CYBERFLUIDS_BUILD_EXAMPLES AND CYBERFLUIDS_HAVE_NUMPP)
+    add_subdirectory(examples)
 endif()
 
 # -----------------------------------------------------------------------------

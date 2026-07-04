@@ -31,11 +31,11 @@
 
 ## 5. Boundary conditions
 
-- [ ] 5.1 Implement bounce-back no-slip dynamics
-- [ ] 5.2 Implement Zou/He velocity (Dirichlet) boundary for faces/edges/corners
-- [ ] 5.3 Implement `setVelocityConditionOnBlockBoundaries` convenience application
-- [ ] 5.4 Implement periodic boundaries per axis
-- [ ] 5.5 Unit-test boundary mass/momentum behavior on small grids
+- [x] 5.1 Implement bounce-back no-slip (`boundary::noSlipReflected`) + moving-wall momentum term
+- [x] 5.2 Implement Zou/He velocity (Dirichlet) boundary — 2D top face (`boundary::zouHeVelocityTop`), self-consistency tested *(other faces/edges/corners and 3D deferred to a follow-up)*
+- [ ] 5.3 Implement `setVelocityConditionOnBlockBoundaries` convenience application *(deferred — the cavity applies the lid velocity directly; generic multi-face applicator is a follow-up)*
+- [x] 5.4 Implement periodic boundaries per axis (`streamPeriodic` full wrap; tested for axis + diagonal wrap)
+- [x] 5.5 Unit-test boundary behavior: Zou/He recovers imposed u/rho; bounce-back reflection + moving-wall term
 
 ## 6. CPU backend
 
@@ -46,9 +46,9 @@
 
 ## 7. Lid-driven cavity example (Navier-Stokes)
 
-- [ ] 7.1 Build a 2D D2Q9 lid-driven cavity (BGK + Zou/He lid + bounce-back walls)
-- [ ] 7.2 Build a 3D D3Q19 lid-driven cavity
-- [ ] 7.3 Run to steady state and dump centerline velocity profiles
+- [x] 7.1 Build a 2D D2Q9 lid-driven cavity (BGK + bounce-back walls + moving-wall bounce-back lid, chosen over Zou/He for exact mass conservation) — mass conserved to rounding; classic S-curve centerline
+- [x] 7.2 Build a 3D D3Q19 lid-driven cavity (BGK + bounce-back walls + moving-wall lid)
+- [x] 7.3 Run to steady state and dump centerline velocity profiles (`writeCenterlines` CSV; cavity2d/cavity3d demos)
 
 ## 8. Palabos oracle validation
 
