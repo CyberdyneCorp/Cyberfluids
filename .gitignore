@@ -1,0 +1,39 @@
+# Build
+/build/
+/build-*/
+/out/
+cmake-build-*/
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.dylib
+*.dll
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+CMakeUserPresets.json
+_deps/
+
+# Python bindings
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+dist/
+
+# Swift bindings
+.build/
+*.xcodeproj/xcuserdata/
+DerivedData/
+
+# Editors / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Local agent settings
+.claude/settings.local.json
