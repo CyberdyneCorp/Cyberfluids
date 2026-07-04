@@ -16,15 +16,15 @@
 ## 3. Core data structures (NumPP-backed)
 
 - [x] 3.1 Implement NumPP-backed SoA population storage (`[q][cells]`) for a domain — `PopulationField<T,Descriptor>` over `numpp::ndarray`; layout verified by test
-- [ ] 3.2 Implement `ScalarField<T>` and `TensorField<T,N>` over NumPP arrays (2D/3D)
-- [ ] 3.3 Implement `BlockLattice<T,Descriptor>` (2D/3D): allocation, `getBoundingBox()`, cell access
-- [ ] 3.4 Implement `Cell<T,Descriptor>` as a view: `operator[](iPop)`, dynamics reference, external fields
-- [ ] 3.5 Implement `attributeDynamics(subdomain, dynamics)` region assignment
-- [ ] 3.6 Enforce smart-pointer ownership; unit-test lifetime with no manual `delete`
+- [x] 3.2 Implement `ScalarField<T>` and `TensorField<T,N>` over NumPP arrays (2D/3D) — C-order layout verified by test
+- [x] 3.3 Implement `BlockLattice<T,Descriptor>` (2D/3D): allocation, `getBoundingBox()`, cell access; `BlockLattice2D`/`3D` aliases
+- [x] 3.4 Implement `Cell<T,Descriptor>` as a view: `operator[](iPop)`, dynamics reference *(external-field storage deferred until a forced descriptor lands — no external fields in the MVP stencils)*
+- [x] 3.5 Implement `attributeDynamics(subdomain, dynamics)` region assignment
+- [x] 3.6 Enforce smart-pointer ownership; unit-test lifetime with no manual `delete` (lattice in `unique_ptr`, dynamics in a `shared_ptr` registry)
 
 ## 4. Collision & time step
 
-- [ ] 4.1 Define abstract `Dynamics<T,Descriptor>` interface (collide, computeEquilibrium, moments, get/setOmega, traits)
+- [x] 4.1 Define abstract `Dynamics<T,Descriptor>` interface (collide, computeEquilibrium, moments, get/setOmega, traits) — needed by `Cell`
 - [ ] 4.2 Implement `BGKdynamics(omega)` with second-order equilibrium; verify `nu = cs2*(1/omega - 1/2)`
 - [ ] 4.3 Implement `collide()`, `stream()`, and fused `collideAndStream()` over C++20 Ranges
 - [ ] 4.4 Unit-test: fused vs separate produce identical fields; equilibrium recovers imposed rho/u
