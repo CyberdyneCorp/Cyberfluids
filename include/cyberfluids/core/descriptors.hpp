@@ -3,6 +3,7 @@
 #include <array>
 
 #include "cyberfluids/core/descriptor.hpp"
+#include "cyberfluids/core/external_traits.hpp"
 
 /// Standard nearest-neighbour hydrodynamic lattice descriptors.
 ///
@@ -151,5 +152,23 @@ static_assert(LatticeDescriptor<D3Q19>, "D3Q19 must satisfy LatticeDescriptor");
 static_assert(LatticeDescriptor<D3Q27>, "D3Q27 must satisfy LatticeDescriptor");
 static_assert(LatticeDescriptor<D2Q5>, "D2Q5 must satisfy LatticeDescriptor");
 static_assert(LatticeDescriptor<D3Q7>, "D3Q7 must satisfy LatticeDescriptor");
+
+// External-field descriptor variants: a per-cell body force (Forced*) or a
+// per-cell advection velocity (Advected*), composed onto a base stencil. The
+// base descriptors above stay unchanged. See core/external_traits.hpp.
+using ForcedD2Q9 = WithExternal<D2Q9, ext::Force<2>>;
+using ForcedD3Q19 = WithExternal<D3Q19, ext::Force<3>>;
+using ForcedD3Q27 = WithExternal<D3Q27, ext::Force<3>>;
+using AdvectedD2Q5 = WithExternal<D2Q5, ext::Velocity<2>>;
+using AdvectedD3Q7 = WithExternal<D3Q7, ext::Velocity<3>>;
+
+static_assert(LatticeDescriptor<ForcedD2Q9>);
+static_assert(LatticeDescriptor<ForcedD3Q19>);
+static_assert(LatticeDescriptor<ForcedD3Q27>);
+static_assert(LatticeDescriptor<AdvectedD2Q5>);
+static_assert(LatticeDescriptor<AdvectedD3Q7>);
+static_assert(numExternalScalars<D2Q9>() == 0);
+static_assert(numExternalScalars<ForcedD2Q9>() == 2);
+static_assert(numExternalScalars<AdvectedD3Q7>() == 3);
 
 }  // namespace cyberfluids::descriptors

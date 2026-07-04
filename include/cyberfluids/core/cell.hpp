@@ -21,8 +21,9 @@ class Cell {
 public:
     static constexpr int q = Descriptor::q;
 
-    Cell(T* origin, std::int64_t stride, Dynamics<T, Descriptor>* dynamics) noexcept
-        : origin_(origin), stride_(stride), dynamics_(dynamics) {}
+    Cell(T* origin, std::int64_t stride, Dynamics<T, Descriptor>* dynamics,
+         T* external = nullptr) noexcept
+        : origin_(origin), stride_(stride), dynamics_(dynamics), external_(external) {}
 
     /// Distribution function f_iPop (0 <= iPop < q).
     T& operator[](int iPop) {
@@ -35,10 +36,21 @@ public:
     /// Non-owning pointer to the cell's collision model (may be null).
     Dynamics<T, Descriptor>* dynamics() const noexcept { return dynamics_; }
 
+    /// Per-cell external scalar at `offset` (shares the population stride).
+    /// Only valid when the descriptor declares external fields (hasExternal()).
+    T& external(int offset) {
+        return external_[static_cast<std::int64_t>(offset) * stride_];
+    }
+    const T& external(int offset) const {
+        return external_[static_cast<std::int64_t>(offset) * stride_];
+    }
+    bool hasExternal() const noexcept { return external_ != nullptr; }
+
 private:
     T* origin_;
     std::int64_t stride_;
     Dynamics<T, Descriptor>* dynamics_;
+    T* external_;
 };
 
 }  // namespace cyberfluids

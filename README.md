@@ -195,9 +195,10 @@ implementation, not specification. Legend: ✅ implemented · 🟡 partial (MVP 
 | Capability | Spec | Status |
 |---|---|---|
 | NumPP/SciPP foundation | [spec](openspec/specs/numpp-scipp-foundation/spec.md) | 🟡 NumPP integrated (SoA populations, fields); SciPP wired, not yet used |
-| Lattice descriptors | [spec](openspec/specs/lattice-descriptors/spec.md) | 🟡 D2Q9 · D3Q19 · D3Q27 · D2Q5 · D3Q7 (external-field variants planned) |
+| Lattice descriptors | [spec](openspec/specs/lattice-descriptors/spec.md) | 🟡 D2Q9 · D3Q19 · D3Q27 · D2Q5 · D3Q7 + forced/advected variants (WithSource planned) |
 | Core data structures | [spec](openspec/specs/core-data-structures/spec.md) | ✅ BlockLattice · Cell · Scalar/Tensor fields |
-| Collision dynamics | [spec](openspec/specs/collision-dynamics/spec.md) | 🟡 BGK · TRT · MRT (D2Q9) · regularized · forced (uniform); MRT-3D & per-cell forcing planned |
+| External fields | [spec](openspec/specs/external-fields/spec.md) | ✅ per-cell force / advection velocity (SoA, zero-cost when absent) + fluid→AD coupling |
+| Collision dynamics | [spec](openspec/specs/collision-dynamics/spec.md) | 🟡 BGK · TRT · MRT (D2Q9) · regularized · forced (uniform + per-cell) · advection-diffusion; MRT-3D planned |
 | Streaming & time step | [spec](openspec/specs/streaming-and-timestep/spec.md) | ✅ collide / stream / fused collideAndStream |
 | Boundary conditions | [spec](openspec/specs/boundary-conditions/spec.md) | 🟡 bounce-back · moving-wall · Zou/He (top) · periodic (STL / all-faces planned) |
 | Hardware backends | [spec](openspec/specs/hardware-backends/spec.md) | 🟡 CPU implemented; GPU backends stubbed |

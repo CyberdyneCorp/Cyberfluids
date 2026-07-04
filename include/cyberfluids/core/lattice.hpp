@@ -10,6 +10,7 @@
 #include "cyberfluids/core/cell.hpp"
 #include "cyberfluids/core/descriptor.hpp"
 #include "cyberfluids/core/dynamics.hpp"
+#include "cyberfluids/core/external.hpp"
 #include "cyberfluids/core/geometry.hpp"
 #include "cyberfluids/core/populations.hpp"
 
@@ -27,17 +28,22 @@ class BlockLattice {
 public:
     using CellType = Cell<T, Descriptor>;
     using DynamicsType = Dynamics<T, Descriptor>;
+    using DescriptorType = Descriptor;
+    using ValueType = T;
+    static constexpr int dimension = Dim;
 
     BlockLattice(std::int64_t nx, std::int64_t ny) requires(Dim == 2)
         : n_{nx, ny},
           ncells_(nx * ny),
           pop_(nx * ny),
+          ext_(nx * ny),
           cellDynamics_(static_cast<std::size_t>(nx * ny), nullptr) {}
 
     BlockLattice(std::int64_t nx, std::int64_t ny, std::int64_t nz) requires(Dim == 3)
         : n_{nx, ny, nz},
           ncells_(nx * ny * nz),
           pop_(nx * ny * nz),
+          ext_(nx * ny * nz),
           cellDynamics_(static_cast<std::size_t>(nx * ny * nz), nullptr) {}
 
     std::int64_t extent(int axis) const { return n_[axis]; }
@@ -70,6 +76,10 @@ public:
     PopulationField<T, Descriptor>& populations() { return pop_; }
     const PopulationField<T, Descriptor>& populations() const { return pop_; }
 
+    /// Per-cell external fields (empty when the descriptor declares none).
+    ExternalField<T, Descriptor>& externalField() { return ext_; }
+    const ExternalField<T, Descriptor>& externalField() const { return ext_; }
+
     /// Build a Cell view from a linear cell index (0 <= c < ncells).
     CellType cellByIndex(std::int64_t c) { return cellAt(c); }
 
@@ -89,7 +99,8 @@ public:
 
 private:
     CellType cellAt(std::int64_t c) {
-        return CellType(&pop_(0, c), ncells_, cellDynamics_[static_cast<std::size_t>(c)]);
+        return CellType(&pop_(0, c), ncells_, cellDynamics_[static_cast<std::size_t>(c)],
+                        ext_.origin(c));
     }
 
     template <class F>
@@ -109,6 +120,7 @@ private:
     std::array<std::int64_t, Dim> n_;
     std::int64_t ncells_;
     PopulationField<T, Descriptor> pop_;
+    ExternalField<T, Descriptor> ext_;
     std::vector<std::shared_ptr<DynamicsType>> registry_;
     std::vector<DynamicsType*> cellDynamics_;
 };
