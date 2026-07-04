@@ -33,8 +33,20 @@ flowchart LR
 - **Reproducibility.** Parameters, tolerances, and the Palabos revision are recorded so a
   failure is attributable to a specific change.
 
-## First benchmark
+## First benchmark (implemented)
 
 The [`bootstrap-cyberfluids-core`](../openspec/changes/bootstrap-cyberfluids-core) change
-validates a **lid-driven cavity** in 2D (D2Q9) and 3D (D3Q19) against Palabos. Local Palabos
-reference checkout: `/Users/leonardoaraujo/work/palabos`.
+validates a **2D lid-driven cavity** (D2Q9, BGK, 64×64, `omega=1/0.6`, `U=0.05`, Re≈96,
+40 000 steps) against Palabos `4127697`.
+
+- **Result:** interior centerline agreement of **L∞ ≈ 0.050** and **L2 ≈ 0.008** (fractions
+  of the lid speed). The L∞ peak is the interior node directly below the lid, where
+  Cyberfluids' moving-wall bounce-back and Palabos' interpolation BC differ most.
+- **Tolerances enforced:** L∞ ≤ 0.07, L2 ≤ 0.015.
+- The regression test (`tests/test_oracle_cavity.cpp`) reads the stored reference
+  (`tests/oracle/cavity2d_palabos.csv`) and compares in-process — no Palabos/MPI in the
+  test build. See [`tests/oracle/README.md`](../tests/oracle/README.md) for parameters and
+  how to regenerate the reference.
+
+A 3D (D3Q19) oracle reference is a follow-up. Local Palabos checkout used:
+`/Users/leonardoaraujo/work/palabos`.

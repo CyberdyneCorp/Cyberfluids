@@ -16,4 +16,15 @@ if(CYBERFLUIDS_HAVE_NUMPP)
         target_include_directories(test_${_t} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
         add_test(NAME ${_t} COMMAND test_${_t})
     endforeach()
+
+    # Palabos oracle regression — built only when the stored reference exists.
+    set(_oracle_ref "${CMAKE_CURRENT_SOURCE_DIR}/oracle/cavity2d_palabos.csv")
+    if(EXISTS "${_oracle_ref}")
+        add_executable(test_oracle_cavity test_oracle_cavity.cpp)
+        target_link_libraries(test_oracle_cavity PRIVATE cyberfluids_core numpp::numpp)
+        target_include_directories(test_oracle_cavity PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+        target_compile_definitions(test_oracle_cavity PRIVATE
+            CYBERFLUIDS_ORACLE_DATA="${_oracle_ref}")
+        add_test(NAME oracle_cavity COMMAND test_oracle_cavity)
+    endif()
 endif()

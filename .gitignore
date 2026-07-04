@@ -41,3 +41,6 @@ DerivedData/
 
 # Local agent settings
 .claude/settings.local.json
+
+# Palabos oracle generator build tree
+/tests/oracle/palabos/build/
