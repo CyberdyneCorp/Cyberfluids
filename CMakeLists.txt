@@ -55,9 +55,26 @@ target_compile_features(cyberfluids_core INTERFACE cxx_std_20)
 # -----------------------------------------------------------------------------
 # Tests
 # -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+# C ABI shared library (wrapped by the Python and Swift bindings)
+# -----------------------------------------------------------------------------
+if(CYBERFLUIDS_HAVE_NUMPP)
+    add_library(cyberfluids_c SHARED src/capi.cpp)
+    add_library(Cyberfluids::c ALIAS cyberfluids_c)
+    target_link_libraries(cyberfluids_c PRIVATE cyberfluids_core numpp::numpp)
+    target_compile_definitions(cyberfluids_c PRIVATE CYBERFLUIDS_VERSION="${PROJECT_VERSION}")
+    # Find libnumpp at runtime (build tree) when the bindings load this library.
+    set_target_properties(cyberfluids_c PROPERTIES
+        BUILD_RPATH "${CYBERFLUIDS_DEPS_PREFIX}/lib")
+endif()
+
 if(CYBERFLUIDS_BUILD_TESTS)
     enable_testing()
     add_subdirectory(tests)
+    # Binding smoke tests wrap the C ABI library.
+    if(CYBERFLUIDS_HAVE_NUMPP)
+        add_subdirectory(bindings)
+    endif()
 endif()
 
 # Examples use the NumPP-backed solver, so they need NumPP present.

@@ -1,0 +1,5 @@
+module CCyberfluids {
+    header "shim.h"
+    link "cyberfluids_c"
+    export *
+}

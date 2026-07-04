@@ -44,3 +44,6 @@ DerivedData/
 
 # Palabos oracle generator build tree
 /tests/oracle/palabos/build/
+
+# Swift binding build
+/bindings/swift/.build/

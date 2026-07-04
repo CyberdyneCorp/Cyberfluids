@@ -60,10 +60,10 @@
 
 ## 9. Language bindings
 
-- [ ] 9.1 Define the thin C-ABI core surface (create lattice, set dynamics/BCs, step, read fields)
-- [ ] 9.2 Implement the Python binding with NumPP↔NumPy field interop
-- [ ] 9.3 Implement the Swift binding (SwiftPM module)
-- [ ] 9.4 Add smoke tests: build+run the cavity from Python and from Swift
+- [x] 9.1 Define the thin C-ABI core surface (`include/cyberfluids/capi.h` + `cyberfluids_c` shared lib): cavity create/destroy/run/step, nx/ny, velocity/density readout
+- [x] 9.2 Implement the Python binding (ctypes over the C ABI); fields returned as NumPy arrays mirroring the NumPP-backed data
+- [x] 9.3 Implement the Swift binding (SwiftPM system-library module wrapping the C ABI)
+- [x] 9.4 Add smoke tests (CTest `python_binding` + `swift_binding`): build+run the cavity, read velocity, assert lid-driven flow — both pass
 
 ## 10. Validation & docs
 

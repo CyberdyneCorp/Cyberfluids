@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cyberfluids"
+version = "0.0.1"
+description = "Python binding for the Cyberfluids C++20 Lattice Boltzmann CFD engine"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = ["numpy>=1.20"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["cyberfluids*"]
