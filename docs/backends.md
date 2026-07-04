@@ -22,12 +22,12 @@ flowchart LR
 
 ## Backend matrix
 
-| Backend | Hardware | Enable flag | Notes |
+| Backend | Hardware | Enable flag | Status |
 |---|---|---|---|
-| **CPU** | x86-64 (AVX-512), ARM64 (Neon) | on by default | `std::execution::par_unseq`; serial fallback when unavailable |
-| **CUDA** | NVIDIA GeForce / Quadro / Tesla | `-DCYBERFLUIDS_CUDA=ON` | Dedicated driver for max throughput |
-| **Metal** | Apple Silicon (Mac, iPad) | `-DCYBERFLUIDS_METAL=ON` | metal-cpp, pure C++ |
-| **OpenCL / SYCL** | AMD, Intel, integrated GPUs | `-DCYBERFLUIDS_OPENCL=ON` | Hardware-agnostic path |
+| **CPU** | x86-64 (AVX-512), ARM64 (Neon) | on by default | ✅ Implemented — `std::execution::par_unseq` (guarded by `__cpp_lib_parallel_algorithm`) with a serial fallback |
+| **CUDA** | NVIDIA GeForce / Quadro / Tesla | `-DCYBERFLUIDS_CUDA=ON` | 📋 Stub — seam locked, no device kernels yet |
+| **Metal** | Apple Silicon (Mac, iPad) | `-DCYBERFLUIDS_METAL=ON` | 📋 Stub — seam locked (metal-cpp planned) |
+| **OpenCL / SYCL** | AMD, Intel, integrated GPUs | `-DCYBERFLUIDS_OPENCL=ON` | 📋 Stub — seam locked |
 
 ## Guarantees
 
@@ -37,5 +37,6 @@ flowchart LR
   tolerance**.
 - No MPI library or launcher is required to build or run.
 
-Status: all backends are 📋 **Planned**. The CPU backend lands with the MVP; GPU backends
-are follow-up changes behind the flags above (seams stubbed in the MVP).
+Status: the **CPU backend is implemented** (✅) and is the working path. GPU backends are
+**stubs** today — the `Backend::forEachIndex(n, f)` seam is locked so device kernels drop in
+without touching model code; wiring real CUDA/Metal/OpenCL kernels is a follow-up change.

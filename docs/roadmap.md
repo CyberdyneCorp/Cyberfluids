@@ -5,18 +5,20 @@ regressions where applicable). This is a plan, not a commitment of dates.
 
 ```mermaid
 flowchart LR
-    M0["M0 · Bootstrap MVP"] --> M1["M1 · Dynamics & stencils"]
+    M0["M0 · Bootstrap MVP ✅"] --> M1["M1 · Dynamics & stencils"]
     M1 --> M2["M2 · Geometry & I/O"]
     M2 --> M3["M3 · GPU backends"]
     M3 --> M4["M4 · Multiphysics"]
     M4 --> M5["M5 · Mobile & bindings GA"]
 ```
 
-## M0 — Bootstrap MVP  *(active)*
+## M0 — Bootstrap MVP  *(done — 12/12 tests, Palabos-validated)*
 
 [`bootstrap-cyberfluids-core`](../openspec/changes/bootstrap-cyberfluids-core): CMake +
-NumPP/SciPP, D2Q9+D3Q19, BGK, collide-and-stream, bounce-back + Zou/He, CPU backend, 2D+3D
-lid-driven cavity, Palabos oracle harness, Python/Swift scaffolds.
+NumPP, D2Q9+D3Q19, BGK, collide-and-stream, bounce-back + moving-wall + Zou/He + periodic,
+CPU backend, 2D+3D lid-driven cavity, Palabos oracle regression (~0.8% RMS of U), Python +
+Swift bindings. Deferred within M0: generic multi-face velocity BC, iOS/Android toolchains,
+and a 3D oracle reference.
 
 ## M1 — Dynamics & stencils
 

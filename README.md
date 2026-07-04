@@ -4,7 +4,9 @@
 
 **A next-generation, zero-legacy Computational Fluid Dynamics engine — the Lattice Boltzmann Method in pure, modern C++20.**
 
-![status](https://img.shields.io/badge/status-pre--alpha-orange)
+![status](https://img.shields.io/badge/status-alpha-orange)
+![tests](https://img.shields.io/badge/tests-12%2F12%20passing-brightgreen)
+![oracle](https://img.shields.io/badge/Palabos%20oracle-~0.8%25%20RMS-brightgreen)
 ![C++](https://img.shields.io/badge/C%2B%2B-20-blue)
 ![backends](https://img.shields.io/badge/backends-CPU%20%7C%20CUDA%20%7C%20Metal%20%7C%20OpenCL%2FSYCL-informational)
 ![platforms](https://img.shields.io/badge/platforms-desktop%20%7C%20iOS%20%7C%20Android-success)
@@ -26,11 +28,15 @@ The result is an ultra-clean, modular simulation engine natively optimized to ru
 everywhere from **supercomputers and desktop GPUs down to phones and tablets** — with **no
 MPI** and **no generic third-party math libraries**.
 
-> **Status: pre-alpha / specification phase.** The library is being built spec-first with
-> [OpenSpec](https://openspec.dev). The full target contract lives in
-> [`openspec/specs/`](openspec/specs); the first implementable slice is the
-> [`bootstrap-cyberfluids-core`](openspec/changes/bootstrap-cyberfluids-core) change.
-> The code examples below show the **preview API** and are not yet implemented.
+> **Status: alpha — foundational MVP implemented and Palabos-validated.** Built spec-first
+> with [OpenSpec](https://openspec.dev); the full target contract lives in
+> [`openspec/specs/`](openspec/specs). The
+> [`bootstrap-cyberfluids-core`](openspec/changes/bootstrap-cyberfluids-core) change delivers
+> a working slice: D2Q9/D3Q19 descriptors, BGK collision, streaming, bounce-back + Zou/He +
+> periodic boundaries, a CPU (`std::execution`) backend, 2D/3D lid-driven cavities, Python +
+> Swift bindings, and a Palabos oracle regression test. The examples below use the **real
+> API**. Broader physics (TRT/MRT, multiphase, thermal), GPU backends, and STL geometry are
+> the planned follow-ups tracked in the [feature table](#-feature-status).
 
 ## ✨ Highlights
 
@@ -95,50 +101,53 @@ flowchart LR
     MACRO --> OUT["Output / analysis<br/>VTK · checkpoints"]
 ```
 
-## 🚀 Quick start (preview)
-
-Cyberfluids builds with CMake and fetches NumPP/SciPP automatically.
+## 🚀 Quick start
 
 ```bash
 git clone https://github.com/CyberdyneCorp/Cyberfluids.git
 cd Cyberfluids
+scripts/bootstrap_deps.sh                        # build + install NumPP into .deps/
 cmake -B build -DCMAKE_BUILD_TYPE=Release        # CPU backend on by default
 cmake --build build -j
-ctest --test-dir build                            # runs the Palabos-oracle regression tests
+ctest --test-dir build                           # 12 tests: core, cavity, Palabos oracle, bindings
 ```
 
-Enable an optional GPU backend (off by default):
+`scripts/bootstrap_deps.sh` expects a NumPP checkout beside this repo (or pass its path);
+it installs NumPP into `.deps/` where CMake's `find_package` picks it up.
+
+Run the demos and the Palabos-oracle regression directly:
 
 ```bash
-cmake -B build -DCYBERFLUIDS_METAL=ON             # or -DCYBERFLUIDS_CUDA=ON / -DCYBERFLUIDS_OPENCL=ON
+./build/examples/cavity2d 128 20000            # writes cavity2d_centerlines.csv
+ctest --test-dir build -R oracle_cavity --output-on-failure
 ```
 
-## 💻 Examples (preview API)
+Enable an optional GPU backend flag (backends are stubs today — CPU is the working path):
+
+```bash
+cmake -B build -DCYBERFLUIDS_METAL=ON            # or -DCYBERFLUIDS_CUDA=ON / -DCYBERFLUIDS_OPENCL=ON
+```
+
+## 💻 Examples
+
+The 2D lid-driven cavity, driven from each language through one shared core. All three
+produce identical results.
 
 ### C++
 
 ```cpp
-#include <cyberfluids/cyberfluids.hpp>
+#include <cyberfluids/solver/lid_driven_cavity.hpp>
 
 using namespace cyberfluids;
 
 int main() {
-    // 2D lid-driven cavity, Re implied by omega and the lid velocity.
-    const std::size_t nx = 256, ny = 256;
-    const double omega = 1.0 / 0.6;               // omega = 1 / tau
+    // 2D lid-driven cavity: D2Q9, BGK, moving-wall lid. Re = U*N/nu.
+    solver::LidDrivenCavity2D<> cav(/*nx=*/256, /*ny=*/256,
+                                    /*omega=*/1.0 / 0.6, /*lidVelocity=*/0.05);
+    cav.run(20'000);                              // collide-and-stream on std::execution::par_unseq
 
-    BlockLattice2D<double, descriptors::D2Q9> lattice(nx, ny);
-    lattice.attributeDynamics(lattice.boundingBox(), BGKdynamics{omega});
-
-    // No-slip walls + a moving lid on the top boundary.
-    auto bc = boundary::createLocalBoundaryCondition2D(lattice);
-    bc.setVelocityConditionOnBlockBoundaries(lattice);
-    bc.setVelocity(topWall(lattice), {0.05, 0.0});
-
-    for (std::size_t step = 0; step < 20'000; ++step)
-        lattice.collideAndStream();               // runs on std::execution::par_unseq
-
-    io::writeVTK(lattice, "cavity2d.vti");
+    auto u = cav.velocity(128, 128);              // {ux, uy} at the center
+    cav.writeCenterlines("cavity2d.csv");
 }
 ```
 
@@ -148,18 +157,11 @@ int main() {
 import cyberfluids as cf
 import numpy as np
 
-# Same cavity, driven from Python; fields come back as NumPy arrays (NumPP interop).
-lattice = cf.BlockLattice2D(256, 256, descriptor=cf.D2Q9, dtype="float64")
-lattice.attribute_dynamics(lattice.bounding_box(), cf.BGKdynamics(omega=1 / 0.6))
+# Fields come back as NumPy arrays mirroring the NumPP-backed C++ fields.
+cav = cf.Cavity2D(256, 256, omega=1 / 0.6, lid_velocity=0.05)
+cav.run(20_000)
 
-bc = cf.boundary.local_2d(lattice)
-bc.set_velocity_on_boundaries(lattice)
-bc.set_velocity(lattice.top_wall(), (0.05, 0.0))
-
-for _ in range(20_000):
-    lattice.collide_and_stream()
-
-u: np.ndarray = lattice.velocity()               # shape (256, 256, 2), zero-copy where possible
+u = cav.velocity()                               # np.ndarray, shape (256, 256, 2)
 print("max speed:", np.linalg.norm(u, axis=-1).max())
 ```
 
@@ -168,53 +170,46 @@ print("max speed:", np.linalg.norm(u, axis=-1).max())
 ```swift
 import Cyberfluids
 
-// Same cavity on Apple Silicon (CPU or Metal backend).
-let lattice = BlockLattice2D<Double, D2Q9>(nx: 256, ny: 256)
-lattice.attributeDynamics(lattice.boundingBox(), BGKDynamics(omega: 1.0 / 0.6))
+let cav = Cavity2D(nx: 256, ny: 256, omega: 1.0 / 0.6, lidVelocity: 0.05)!
+cav.run(steps: 20_000)
 
-let bc = Boundary.localCondition2D(lattice)
-bc.setVelocityOnBoundaries(lattice)
-bc.setVelocity(lattice.topWall(), .init(x: 0.05, y: 0.0))
-
-for _ in 0..<20_000 {
-    lattice.collideAndStream()
-}
-
-let u = lattice.velocity()                        // bridged to Swift arrays
-print("max speed:", u.magnitude().max() ?? 0)
+let u = cav.velocity()                           // [Double], length nx*ny*2 (row-major)
 ```
+
+See [`bindings/README.md`](bindings/README.md) for building and linking the bindings.
 
 ## ⚙️ Backends
 
 | Backend | Target hardware | Status |
 |---|---|---|
-| **CPU** (`std::execution::par_unseq`) | All x86-64 (AVX-512) & ARM64 (Neon) | 📋 Planned (MVP) |
-| **CUDA** | NVIDIA GeForce / Quadro / Tesla | 📋 Planned |
-| **Metal** (metal-cpp) | Apple Silicon (Mac, iPad) | 📋 Planned |
-| **OpenCL / SYCL** | AMD, Intel, integrated GPUs | 📋 Planned |
+| **CPU** (`std::execution::par_unseq`) | All x86-64 (AVX-512) & ARM64 (Neon) | ✅ Implemented (par_unseq + serial fallback) |
+| **CUDA** | NVIDIA GeForce / Quadro / Tesla | 📋 Stub (seam locked) |
+| **Metal** (metal-cpp) | Apple Silicon (Mac, iPad) | 📋 Stub (seam locked) |
+| **OpenCL / SYCL** | AMD, Intel, integrated GPUs | 📋 Stub (seam locked) |
 
 ## 📊 Feature status
 
 Authoritative behavior lives in the OpenSpec capability specs (linked). Status reflects
-implementation, not specification.
+implementation, not specification. Legend: ✅ implemented · 🟡 partial (MVP subset) · 📋 planned.
 
 | Capability | Spec | Status |
 |---|---|---|
-| NumPP/SciPP foundation | [spec](openspec/specs/numpp-scipp-foundation/spec.md) | 📋 Planned |
-| Lattice descriptors (D2Q9 · D3Q19 · D3Q27 · D2Q5 · D3Q7) | [spec](openspec/specs/lattice-descriptors/spec.md) | 📋 Planned |
-| Core data structures | [spec](openspec/specs/core-data-structures/spec.md) | 📋 Planned |
-| Collision dynamics (BGK · TRT · MRT · regularized · forced) | [spec](openspec/specs/collision-dynamics/spec.md) | 📋 Planned |
-| Streaming & time step | [spec](openspec/specs/streaming-and-timestep/spec.md) | 📋 Planned |
-| Boundary conditions | [spec](openspec/specs/boundary-conditions/spec.md) | 📋 Planned |
-| Hardware backends | [spec](openspec/specs/hardware-backends/spec.md) | 📋 Planned |
-| Physical models (Navier-Stokes · Shan-Chen · thermal · porous) | [spec](openspec/specs/physical-models/spec.md) | 📋 Planned |
-| Geometry & I/O (STL · VTK · checkpoint) | [spec](openspec/specs/geometry-and-io/spec.md) | 📋 Planned |
-| Language bindings (Python · Swift) | [spec](openspec/specs/language-bindings/spec.md) | 📋 Planned |
-| Platform support (desktop · iOS · Android) | [spec](openspec/specs/platform-support/spec.md) | 📋 Planned |
+| NumPP/SciPP foundation | [spec](openspec/specs/numpp-scipp-foundation/spec.md) | 🟡 NumPP integrated (SoA populations, fields); SciPP wired, not yet used |
+| Lattice descriptors | [spec](openspec/specs/lattice-descriptors/spec.md) | 🟡 D2Q9 · D3Q19 (D3Q27 · D2Q5 · D3Q7 planned) |
+| Core data structures | [spec](openspec/specs/core-data-structures/spec.md) | ✅ BlockLattice · Cell · Scalar/Tensor fields |
+| Collision dynamics | [spec](openspec/specs/collision-dynamics/spec.md) | 🟡 BGK (TRT · MRT · regularized · forced planned) |
+| Streaming & time step | [spec](openspec/specs/streaming-and-timestep/spec.md) | ✅ collide / stream / fused collideAndStream |
+| Boundary conditions | [spec](openspec/specs/boundary-conditions/spec.md) | 🟡 bounce-back · moving-wall · Zou/He (top) · periodic (STL / all-faces planned) |
+| Hardware backends | [spec](openspec/specs/hardware-backends/spec.md) | 🟡 CPU implemented; GPU backends stubbed |
+| Physical models | [spec](openspec/specs/physical-models/spec.md) | 🟡 Navier-Stokes lid-driven cavity (Shan-Chen · thermal · porous planned) |
+| Geometry & I/O | [spec](openspec/specs/geometry-and-io/spec.md) | 🟡 centerline CSV (STL · VTK · checkpoint planned) |
+| Language bindings (Python · Swift) | [spec](openspec/specs/language-bindings/spec.md) | ✅ both, over a shared C ABI |
+| Platform support | [spec](openspec/specs/platform-support/spec.md) | 🟡 desktop/server (iOS · Android toolchains planned) |
+| Oracle validation | [spec (delta)](openspec/changes/bootstrap-cyberfluids-core/specs/oracle-validation/spec.md) | ✅ 2D cavity vs Palabos (~0.8% RMS of U); 3D planned |
 
-**Active change:** [`bootstrap-cyberfluids-core`](openspec/changes/bootstrap-cyberfluids-core) —
-the MVP slice (D2Q9+D3Q19, BGK, CPU backend, lid-driven cavity, Palabos oracle, Python/Swift
-scaffolds). See its [tasks](openspec/changes/bootstrap-cyberfluids-core/tasks.md).
+**MVP change:** [`bootstrap-cyberfluids-core`](openspec/changes/bootstrap-cyberfluids-core) —
+D2Q9+D3Q19, BGK, CPU backend, 2D/3D lid-driven cavity, Palabos oracle, Python/Swift bindings.
+See its [tasks](openspec/changes/bootstrap-cyberfluids-core/tasks.md).
 
 ## 📚 Documentation
 
@@ -225,6 +220,7 @@ scaffolds). See its [tasks](openspec/changes/bootstrap-cyberfluids-core/tasks.md
 | [Features](docs/features.md) | Capability-by-capability overview & status |
 | [Backends](docs/backends.md) | CPU and GPU backends, how switching works |
 | [Oracle validation](docs/oracle-validation.md) | How Palabos is used to validate results |
+| [Bindings](bindings/README.md) | Building and using the Python and Swift bindings |
 | [Roadmap](docs/roadmap.md) | Release milestones after the MVP |
 
 Full documentation index: [`docs/`](docs/README.md).

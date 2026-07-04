@@ -67,5 +67,5 @@
 
 ## 10. Validation & docs
 
-- [ ] 10.1 `openspec validate --all --strict` passes
-- [ ] 10.2 Update README/build docs with dependencies, backends, and how to run the oracle tests
+- [x] 10.1 `openspec validate --all --strict` passes (12 items) + full test suite 12/12
+- [x] 10.2 Update README/docs: real API examples, quick start (bootstrap_deps + ctest), honest feature/backend status, oracle-test instructions, bindings doc

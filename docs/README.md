@@ -4,9 +4,9 @@ Friendly, task-oriented docs for Cyberfluids. The **authoritative contract** for
 capability lives in the OpenSpec specs under [`../openspec/specs/`](../openspec/specs) —
 these pages summarize and link to them.
 
-> **Status: pre-alpha.** Cyberfluids is being built spec-first. Nothing is implemented yet;
-> the active plan is the [`bootstrap-cyberfluids-core`](../openspec/changes/bootstrap-cyberfluids-core)
-> change.
+> **Status: alpha.** The foundational MVP is implemented and Palabos-validated (12/12 tests).
+> See the [feature table](../README.md#-feature-status) for what's done vs planned; the MVP is
+> the [`bootstrap-cyberfluids-core`](../openspec/changes/bootstrap-cyberfluids-core) change.
 
 ## Contents
 
