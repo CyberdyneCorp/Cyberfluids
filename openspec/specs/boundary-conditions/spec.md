@@ -7,9 +7,7 @@ zero-gradient constraints on the lattice — grid-aligned (on-lattice) BCs for b
 domains and off-lattice BCs for arbitrary geometries described by triangulated (STL)
 surfaces. Bounce-back (no-slip) and periodic boundaries SHALL be supported. Schemes SHALL
 match the Palabos reference.
-
 ## Requirements
-
 ### Requirement: Bounce-back no-slip
 The library SHALL provide full bounce-back no-slip dynamics that reflect incoming
 populations back along their opposite directions, plus a momentum-exchange variant that
@@ -55,3 +53,15 @@ using the voxelized flag field to distinguish fluid, solid, and boundary cells.
 #### Scenario: No-slip on an imported geometry
 - **WHEN** an STL geometry is voxelized into the domain and a no-slip off-lattice BC is applied
 - **THEN** cells classified as solid SHALL enforce no-slip at the fluid–solid interface
+
+### Requirement: Scalar Dirichlet (anti-bounce-back)
+The library SHALL provide an anti-bounce-back scalar wall for advection-diffusion lattices that
+imposes a fixed scalar value `phi_wall` at the wall: the reflected population is
+`f_i = -f_opp(i)^post + 2 t_i phi_wall`. This sets hot/cold plate temperatures in thermal flows.
+
+#### Scenario: Fixed-temperature wall
+- **GIVEN** an AD lattice with an anti-bounce-back wall imposing `phi_wall`
+- **WHEN** the scalar field reaches steady state under pure diffusion
+- **THEN** the wall-adjacent scalar SHALL be consistent with `phi_wall` (the half-node wall value),
+  yielding the linear conduction profile between two such walls
+

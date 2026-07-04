@@ -6,9 +6,7 @@ On top of the collision/streaming core, Cyberfluids SHALL provide ready-made phy
 models for common fluid regimes — non-thermal Navier-Stokes, multi-component/multi-phase
 flow, porous media, and thermal flow — with formulations validated against the Palabos
 reference.
-
 ## Requirements
-
 ### Requirement: Non-thermal Navier-Stokes
 The library SHALL simulate incompressible/weakly-compressible non-thermal Navier-Stokes
 flow using a single fluid lattice with a hydrodynamic collision model (BGK/TRT/MRT) and
@@ -39,12 +37,22 @@ through porous/spongy structures can be simulated via a per-cell solid fraction.
 - **THEN** the region SHALL resist flow proportionally to its solid fraction
 
 ### Requirement: Thermal flow (Boussinesq)
-The library SHALL couple a fluid lattice to an advection-diffusion temperature lattice via
-a Boussinesq processor that adds buoyancy proportional to local temperature deviation and
-advects temperature with the fluid velocity.
+The library SHALL couple a fluid lattice to an advection-diffusion "temperature" lattice with
+**two-way coupling**: (1) the fluid velocity advects the temperature (via the external advection
+velocity of the AD lattice), and (2) the temperature produces a buoyancy body force
+`F = rho·g·β·(T − T_ref)` along the gravity axis, applied to the fluid through its per-cell
+external force. Fixed-temperature (Dirichlet) walls SHALL set the hot/cold plates. The kinematic
+viscosity and thermal diffusivity SHALL be set through the fluid/temperature relaxation rates.
+
+#### Scenario: Pure conduction (gravity off)
+- **GIVEN** hot and cold Dirichlet walls with no gravity
+- **WHEN** the coupled system reaches steady state
+- **THEN** the temperature SHALL approach the linear conduction profile between the plates and the
+  fluid velocity SHALL decay to ~0
 
 #### Scenario: Rayleigh-Bénard convection
-- **WHEN** a fluid lattice and a temperature lattice are coupled with gravity, reference
-  temperature, and a temperature difference across the domain
-- **THEN** buoyancy-driven convection cells SHALL develop and temperature SHALL be
-  transported by the flow
+- **GIVEN** a hot bottom wall and cold top wall with buoyancy at Rayleigh number Ra
+- **WHEN** Ra is below the critical value (≈ 1708) the seeded perturbation SHALL decay (no
+  convection); and WHEN Ra is above it the perturbation SHALL grow into steady convection with
+  nonzero kinetic energy
+
