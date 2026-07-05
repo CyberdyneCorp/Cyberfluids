@@ -66,8 +66,12 @@ if(CYBERFLUIDS_HAVE_NUMPP)
     target_link_libraries(cyberfluids_c PRIVATE cyberfluids_core numpp::numpp)
     target_compile_definitions(cyberfluids_c PRIVATE CYBERFLUIDS_VERSION="${PROJECT_VERSION}")
     # Find libnumpp at runtime (build tree) when the bindings load this library.
+    # VERSION/SOVERSION give the shared object a semver-tracked SONAME so
+    # consumers can pin ABI compatibility (major bumps == breaking).
     set_target_properties(cyberfluids_c PROPERTIES
-        BUILD_RPATH "${CYBERFLUIDS_DEPS_PREFIX}/lib")
+        BUILD_RPATH "${CYBERFLUIDS_DEPS_PREFIX}/lib"
+        VERSION "${PROJECT_VERSION}"
+        SOVERSION "${PROJECT_VERSION_MAJOR}")
 endif()
 
 # Optional Apple Metal GPU backend (defines cyberfluids_metal + CYBERFLUIDS_HAVE_METAL).
@@ -107,6 +111,64 @@ endif()
 # Throughput benchmark (NumPP-backed; links any enabled GPU backends).
 if(CYBERFLUIDS_BUILD_BENCH AND CYBERFLUIDS_HAVE_NUMPP)
     add_subdirectory(bench)
+endif()
+
+# -----------------------------------------------------------------------------
+# Install + export (find_package(Cyberfluids))
+#
+# Produces an installable package with a CyberfluidsConfig.cmake so downstream
+# projects can `find_package(Cyberfluids)` and link `Cyberfluids::core` /
+# `Cyberfluids::c`. Requires an *installed* NumPP (the config re-resolves it via
+# find_dependency), so it is disabled when NumPP came from the FetchContent
+# fallback — that path is build-only, not redistributable.
+# -----------------------------------------------------------------------------
+option(CYBERFLUIDS_INSTALL "Generate install + find_package(Cyberfluids) rules" ON)
+
+if(CYBERFLUIDS_INSTALL AND CYBERFLUIDS_NUMPP_FROM_PACKAGE)
+    include(GNUInstallDirs)
+    include(CMakePackageConfigHelpers)
+
+    # Public headers (the whole tree is the API surface today).
+    install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+
+    # Export under clean names so the installed targets match the in-tree aliases
+    # (Cyberfluids::core / Cyberfluids::c), not Cyberfluids::cyberfluids_core.
+    set_target_properties(cyberfluids_core PROPERTIES EXPORT_NAME core)
+
+    # Always export the header-only core; add the C ABI library when it was built.
+    install(TARGETS cyberfluids_core EXPORT CyberfluidsTargets)
+    if(TARGET cyberfluids_c)
+        set_target_properties(cyberfluids_c PROPERTIES EXPORT_NAME c)
+        install(TARGETS cyberfluids_c EXPORT CyberfluidsTargets
+            RUNTIME  DESTINATION ${CMAKE_INSTALL_BINDIR}
+            LIBRARY  DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            ARCHIVE  DESTINATION ${CMAKE_INSTALL_LIBDIR})
+    endif()
+
+    install(EXPORT CyberfluidsTargets
+        FILE CyberfluidsTargets.cmake
+        NAMESPACE Cyberfluids::
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Cyberfluids)
+
+    configure_package_config_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/cmake/CyberfluidsConfig.cmake.in
+        ${CMAKE_CURRENT_BINARY_DIR}/CyberfluidsConfig.cmake
+        INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Cyberfluids)
+    write_basic_package_version_file(
+        ${CMAKE_CURRENT_BINARY_DIR}/CyberfluidsConfigVersion.cmake
+        VERSION ${PROJECT_VERSION}
+        COMPATIBILITY SameMajorVersion)
+    install(FILES
+        ${CMAKE_CURRENT_BINARY_DIR}/CyberfluidsConfig.cmake
+        ${CMAKE_CURRENT_BINARY_DIR}/CyberfluidsConfigVersion.cmake
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Cyberfluids)
+
+    set(CYBERFLUIDS_INSTALL_ENABLED ON)
+elseif(CYBERFLUIDS_INSTALL)
+    set(CYBERFLUIDS_INSTALL_ENABLED OFF)
+    message(STATUS "Cyberfluids: install/export skipped — NumPP is not an installed "
+                   "package (FetchContent build). Install NumPP (scripts/bootstrap_deps.sh) "
+                   "to produce a find_package(Cyberfluids) package.")
 endif()
 
 # -----------------------------------------------------------------------------

@@ -168,6 +168,18 @@ cmake -B build -DCYBERFLUIDS_OPENCL=ON           # any OpenCL 1.2+ device
 cmake -B build -DCYBERFLUIDS_METAL=ON            # Apple Silicon (Metal)
 ```
 
+### 📦 Use it in your project
+
+Install Cyberfluids (with NumPP installed via `scripts/bootstrap_deps.sh`) and consume it from
+another CMake project with `find_package` — no vendoring:
+
+```cmake
+find_package(Cyberfluids REQUIRED)
+target_link_libraries(your_app PRIVATE Cyberfluids::core Cyberfluids::c)
+```
+
+See [Getting started → Use Cyberfluids in your project](docs/getting-started.md#use-cyberfluids-in-your-project).
+
 ## 💻 Examples
 
 The 2D lid-driven cavity, driven from each language through one shared core. All three

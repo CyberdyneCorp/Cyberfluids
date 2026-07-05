@@ -25,7 +25,9 @@ source code — it is a clean-room reimplementation.
     optimization, advanced linear algebra, statistics.
   - No generic third-party math libraries — all numerical data handling flows through
     NumPP/SciPP for a single, coherent style.
-- **Build:** CMake (≥ 3.24). NumPP/SciPP fetched as build dependencies (e.g. FetchContent).
+- **Build:** CMake (≥ 3.24). NumPP resolved via `find_package(NumPP CONFIG)` from a local
+  install prefix (`scripts/bootstrap_deps.sh` → `.deps/`), with a pinned FetchContent fallback
+  when it is not installed. Cyberfluids itself installs a `find_package(Cyberfluids)` package.
 - **Compilers:** GCC, Clang, AppleClang (C++20). Clang covers Apple Silicon and Android NDK.
 - **Parallelism (single node, no MPI):**
   - CPU: C++17/20 STL parallel algorithms (`std::execution::par_unseq`), auto-vectorized

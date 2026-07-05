@@ -7,41 +7,75 @@ The foundational MVP is implemented and Palabos-validated (see the
 
 - A **C++20** compiler: GCC, Clang, or AppleClang.
 - **CMake ≥ 3.24**.
-- A **NumPP** checkout beside this repo (or pass its path to the bootstrap script).
+- **NumPP** — auto-fetched by the build (pinned tag) if not already installed; no manual
+  checkout required. For a pinned local install instead, run `scripts/bootstrap_deps.sh`.
 - No MPI, and no generic third-party math libraries, are required.
 
 ## Build (CPU backend, default)
 
+The simplest path — no dependency setup; the build fetches a pinned NumPP for you:
+
 ```bash
 git clone https://github.com/CyberdyneCorp/Cyberfluids.git
 cd Cyberfluids
-scripts/bootstrap_deps.sh                    # build + install NumPP into .deps/
-cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake -B build -DCMAKE_BUILD_TYPE=Release    # fetches NumPP via FetchContent if not installed
 cmake --build build -j
 ```
 
-`scripts/bootstrap_deps.sh` builds and installs [NumPP](https://github.com/CyberdyneCorp/NumPP)
-into `.deps/`, where CMake's `find_package(NumPP CONFIG)` resolves it. (SciPP consumes NumPP
-the same way and will be wired in once it ships install/export rules; it is not required for
-the MVP.)
+Prefer a pinned local install (and required if you want to `install` Cyberfluids as a
+`find_package` package — see below)? Bootstrap NumPP into `.deps/` first:
+
+```bash
+scripts/bootstrap_deps.sh                     # build + install NumPP into .deps/
+cmake -B build -DCMAKE_BUILD_TYPE=Release     # resolves NumPP via find_package(NumPP CONFIG)
+```
+
+Disable the fetch fallback with `-DCYBERFLUIDS_FETCH_DEPS=OFF` for offline/vendored builds.
+(SciPP consumes NumPP the same way and will be wired in once it ships install/export rules; it
+is not required today.)
+
+> **`just` shortcut:** `just bootstrap && just test` does the install + build + test in one go.
+> See the [justfile](../justfile) for GPU and benchmark recipes.
+
+## Use Cyberfluids in your project
+
+With NumPP installed (via `scripts/bootstrap_deps.sh`), install Cyberfluids and consume it from
+another CMake project with `find_package`:
+
+```bash
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build -j
+cmake --install build --prefix /your/prefix
+```
+
+```cmake
+# In the downstream project's CMakeLists.txt:
+find_package(Cyberfluids REQUIRED)
+target_link_libraries(your_app PRIVATE Cyberfluids::core Cyberfluids::c)
+```
+
+The installed `CyberfluidsConfig.cmake` re-resolves NumPP transitively, so point
+`CMAKE_PREFIX_PATH` at both your install prefix and the NumPP prefix. Install/export is disabled
+for fetch-only builds (the fetched NumPP is not an installed package the config could re-resolve).
 
 ## Optional GPU backends
 
-The flags exist and gate compilation; the GPU backends are currently **stubs** (the seam is
-locked, no device kernels yet). The CPU backend is the working path.
+The GPU backends are real device-kernel solvers (not stubs). Enable the one your host has —
+absence of a GPU toolkit never breaks the CPU build:
 
 ```bash
-cmake -B build -DCYBERFLUIDS_CUDA=ON      # NVIDIA
-cmake -B build -DCYBERFLUIDS_METAL=ON     # Apple Silicon
-cmake -B build -DCYBERFLUIDS_OPENCL=ON    # AMD / Intel / integrated (OpenCL or SYCL)
+cmake -B build -DCYBERFLUIDS_CUDA=ON      # NVIDIA — validated D3Q19 wind tunnel
+cmake -B build -DCYBERFLUIDS_OPENCL=ON    # AMD / Intel / NVIDIA / Apple — validated D3Q19 wind tunnel
+cmake -B build -DCYBERFLUIDS_METAL=ON     # Apple Silicon — D2Q9 BGK cavity
 ```
 
-Absence of a GPU toolkit never breaks the CPU build. See [backends](backends.md).
+`just gpu-detect` reports what this host supports. See [backends](backends.md) and
+[benchmarks](benchmarks.md).
 
 ## Run the tests
 
 ```bash
-ctest --test-dir build                    # 12 tests: core, cavity, Palabos oracle, bindings
+ctest --test-dir build                    # core, cavity, Palabos oracle, GPU, bindings
 ctest --test-dir build -R oracle_cavity --output-on-failure
 ```
 
