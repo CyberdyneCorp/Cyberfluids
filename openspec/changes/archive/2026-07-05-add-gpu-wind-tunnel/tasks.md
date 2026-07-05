@@ -17,6 +17,6 @@
 - [x] 3.2 hardware-backends spec delta (seam CPU-only; OpenCL/CUDA wind tunnel)
 
 ## 4. Review & archive
-- [ ] 4.1 openspec validate --all --strict
-- [ ] 4.2 Adversarial review (GPU memory/indexing; CUDA correctness) + fix
-- [ ] 4.3 Archive
+- [x] 4.1 openspec validate --all --strict
+- [x] 4.2 Adversarial review + fix: OpenCL ctor RAII (no leak on throw), CUDA long->long long (Windows LLP64 index overflow), CUDA post-launch cudaGetLastError, corrected false "CUDA validated" doc claim
+- [x] 4.3 Archive

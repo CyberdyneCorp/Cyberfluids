@@ -139,6 +139,19 @@ struct WindTunnelOpenCL::Impl {
     mutable std::vector<float> cache;
     mutable bool cacheValid = false;
 
+    // RAII: release every OpenCL object here so a constructor that throws
+    // mid-way (the unique_ptr<Impl> is already constructed) still cleans up.
+    ~Impl() {
+        if (collideK) clReleaseKernel(collideK);
+        if (streamK) clReleaseKernel(streamK);
+        if (program) clReleaseProgram(program);
+        if (fA) clReleaseMemObject(fA);
+        if (fB) clReleaseMemObject(fB);
+        if (nsBuf) clReleaseMemObject(nsBuf);
+        if (queue) clReleaseCommandQueue(queue);
+        if (ctx) clReleaseContext(ctx);
+    }
+
     std::int64_t idx(std::int64_t x, std::int64_t y, std::int64_t z) const {
         return (x * ny + y) * nz + z;
     }
@@ -230,17 +243,9 @@ WindTunnelOpenCL::WindTunnelOpenCL(std::int64_t nx, std::int64_t ny, std::int64_
     im.uploadState();
 }
 
-WindTunnelOpenCL::~WindTunnelOpenCL() {
-    auto& im = *impl_;
-    if (im.collideK) clReleaseKernel(im.collideK);
-    if (im.streamK) clReleaseKernel(im.streamK);
-    if (im.program) clReleaseProgram(im.program);
-    if (im.fA) clReleaseMemObject(im.fA);
-    if (im.fB) clReleaseMemObject(im.fB);
-    if (im.nsBuf) clReleaseMemObject(im.nsBuf);
-    if (im.queue) clReleaseCommandQueue(im.queue);
-    if (im.ctx) clReleaseContext(im.ctx);
-}
+// Cleanup lives in ~Impl (RAII), so destroying impl_ releases everything — both
+// on normal destruction and on a constructor that threw part-way.
+WindTunnelOpenCL::~WindTunnelOpenCL() = default;
 
 void WindTunnelOpenCL::setObstacleSphere(double cx, double cy, double cz, double radius,
                                          bool sharp) {

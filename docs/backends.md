@@ -35,7 +35,7 @@ flowchart LR
 |---|---|---|---|
 | **CPU** | x86-64 (AVX-512), ARM64 (Neon) | on by default | ✅ `std::execution::par_unseq` (guarded by `__cpp_lib_parallel_algorithm`) with a serial fallback |
 | **OpenCL** | Apple / AMD / Intel / NVIDIA GPUs | `-DCYBERFLUIDS_OPENCL=ON` | ✅ D3Q19 wind tunnel — device kernels validated on Apple M2 Max GPU (Linf/Uin ~ 1e-5 vs the fp64 CPU oracle; ~1.35 GLUPS) |
-| **CUDA** | NVIDIA GeForce / Quadro / Tesla | `-DCYBERFLUIDS_CUDA=ON` | 🟡 D3Q19 wind-tunnel kernels written (line-for-line mirror of the OpenCL path); compiled + validated on an NVIDIA machine |
+| **CUDA** | NVIDIA GeForce / Quadro / Tesla | `-DCYBERFLUIDS_CUDA=ON` | 🟡 D3Q19 wind-tunnel kernels written (line-for-line mirror of the OpenCL path); **to be compiled + validated on an NVIDIA machine** (authored without nvcc) |
 | **Metal** | Apple Silicon (Mac, iPad) | `-DCYBERFLUIDS_METAL=ON` | ✅ D2Q9 BGK cavity (fp32) — Objective-C++ + runtime MSL kernels |
 | **SYCL** | AMD, Intel, integrated GPUs | `-DCYBERFLUIDS_SYCL=ON` | 📋 Planned |
 
@@ -54,5 +54,6 @@ flowchart LR
 
 Status: the **CPU** path is the always-on baseline. **OpenCL** is a real, validated GPU
 wind-tunnel solver (measured ~290× vs the serial macOS CPU path on an M2 Max; the fair figure
-vs a fully parallel CPU is smaller). **CUDA** mirrors it and is validated on NVIDIA hardware.
+vs a fully parallel CPU is smaller). **CUDA** is a line-for-line mirror of those kernels,
+authored without nvcc — it is compiled and validated on an NVIDIA machine (not yet run).
 **Metal** accelerates the 2D cavity. SYCL is planned.
