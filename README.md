@@ -196,6 +196,55 @@ let u = cav.velocity()                           // [Double], length nx*ny*2 (ro
 
 See [`bindings/README.md`](bindings/README.md) for building and linking the bindings.
 
+### Wind tunnel from an STL
+
+Load a mesh, voxelize it, run external flow past it, and export a VTK for ParaView — the same
+core from either language. STL loading needs a geometry-enabled build
+(`cmake -B build -DCYBERFLUIDS_GEOMETRY=ON`, which pulls in
+[CyberMeshGenerator](https://github.com/CyberdyneCorp/CyberMeshGenerator)); the analytic-sphere
+obstacle works in any build.
+
+#### Python
+
+```python
+import cyberfluids as cf
+import numpy as np
+
+# Voxelize an STL and run flow at Reynolds 100 (inflow speed 0.05 lattice units).
+omega = cf.WindTunnel.omega_for_reynolds(u_in=0.05, l_char=48, re=100)
+tunnel = cf.WindTunnel.from_stl("car.stl", resolution=48, u_in=0.05, omega=omega)
+tunnel.run(15_000)
+
+vel = tunnel.velocity()                          # np.ndarray, shape (nx, ny, nz, 3)
+print("max speed:", np.linalg.norm(vel, axis=-1).max())
+tunnel.write_vtk("car.vtk")                      # ParaView: Contour 'solid' + Stream Tracer 'velocity'
+
+# No mesh? An analytic sphere works with any build:
+#   t = cf.WindTunnel(128, 64, 64, omega=omega, u_in=0.05); t.set_sphere(36, 32, 32, 10)
+```
+
+Or straight from the shell via the bundled example:
+
+```bash
+python examples/wind_tunnel.py --stl car.stl --resolution 48 --reynolds 100 --out car.vtk
+```
+
+#### Swift
+
+```swift
+import Cyberfluids
+
+// Voxelize an STL and run flow at Reynolds 100.
+let omega = WindTunnel.omegaForReynolds(inflow: 0.05, lChar: 48, re: 100)
+guard let tunnel = WindTunnel.fromSTL("car.stl", resolution: 48, inflow: 0.05, omega: omega) else {
+    fatalError("STL support needs a geometry-enabled build (-DCYBERFLUIDS_GEOMETRY=ON)")
+}
+tunnel.run(steps: 15_000)
+
+let u = tunnel.velocity()                        // [Double], length nx*ny*nz*3 (row-major)
+tunnel.writeVTK("car.vtk")                       // open in ParaView
+```
+
 ## 📊 Status at a glance
 
 Cyberfluids runs on **CPU** (`std::execution::par_unseq` with a serial fallback) and **Metal**
