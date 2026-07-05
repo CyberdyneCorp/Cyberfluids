@@ -23,6 +23,10 @@ carry breaking changes while the API stabilizes).
 - **Project governance** — `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`, this
   changelog, and GitHub issue/PR templates.
 
+- **Consumability spec** — a portable OpenSpec "usable by others" readiness rubric
+  (`openspec/specs/consumability`) consolidating the install/packaging/CI/versioning/governance
+  requirements, reusable as an adoption checklist for other projects.
+
 ### Changed
 - Documentation and OpenSpec specs brought back in sync with the shipped code (GPU backends
   marked validated, dependency mechanism corrected, spec `Purpose` placeholders filled).
