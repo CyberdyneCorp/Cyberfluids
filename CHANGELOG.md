@@ -8,6 +8,10 @@ carry breaking changes while the API stabilizes).
 ## [Unreleased]
 
 ### Added
+- **Self-contained Python wheel** — `pip install ./bindings/python` builds the C ABI via
+  scikit-build-core + CMake (NumPP fetched and statically linked into a single bundled
+  `libcyberfluids_c`), so the wheel imports with no manual C++ build. `__init__.py` loads the
+  bundled library from the installed package.
 - **Installable package** — `install`/`export` rules and a generated `CyberfluidsConfig.cmake`
   so downstream projects can `find_package(Cyberfluids)` and link `Cyberfluids::core` /
   `Cyberfluids::c`. The C ABI shared library carries a semver `SOVERSION`.

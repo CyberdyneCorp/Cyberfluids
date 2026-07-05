@@ -25,6 +25,16 @@ option(CYBERFLUIDS_BUILD_TESTS "Build the test suite" ON)
 option(CYBERFLUIDS_BUILD_EXAMPLES "Build the example demos" ON)
 option(CYBERFLUIDS_BUILD_BENCH "Build the throughput benchmark (CPU/CUDA/OpenCL)" OFF)
 
+# Build the C ABI as a self-contained shared library for the Python wheel
+# (scikit-build-core). NumPP is statically linked in (PIC), so the packaged .so
+# has no libnumpp runtime dependency — only system libtbb/libstdc++. Set by
+# bindings/python/pyproject.toml; see the wheel install block below.
+option(CYBERFLUIDS_PYTHON_WHEEL "Build + install the C ABI into the Python wheel" OFF)
+if(CYBERFLUIDS_PYTHON_WHEEL)
+    set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+    set(NUMPP_BUILD_SHARED OFF CACHE BOOL "" FORCE)  # absorb NumPP into libcyberfluids_c
+endif()
+
 # Backend feature flags. The CPU backend is the always-on, mobile-friendly
 # baseline. GPU backends are OFF by default; absence of a GPU toolkit never
 # breaks the CPU build. Cyberfluids is single-node and never depends on MPI.
@@ -72,6 +82,25 @@ if(CYBERFLUIDS_HAVE_NUMPP)
         BUILD_RPATH "${CYBERFLUIDS_DEPS_PREFIX}/lib"
         VERSION "${PROJECT_VERSION}"
         SOVERSION "${PROJECT_VERSION_MAJOR}")
+
+    # Python wheel: link libtbb into the .so so it carries a DT_NEEDED entry
+    # (libstdc++ par_unseq needs it), and install the single self-contained
+    # library into the `cyberfluids` package dir alongside __init__.py. NumPP is
+    # statically linked (see CYBERFLUIDS_PYTHON_WHEEL above), so nothing else to
+    # bundle. --no-as-needed pins libtbb regardless of link-line order.
+    if(CYBERFLUIDS_PYTHON_WHEEL)
+        if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+            target_link_options(cyberfluids_c PRIVATE "LINKER:--no-as-needed")
+            target_link_libraries(cyberfluids_c PRIVATE tbb)
+        endif()
+        set_target_properties(cyberfluids_c PROPERTIES INSTALL_RPATH "$ORIGIN")
+        # Own component so the wheel installs ONLY this library — the fetched
+        # NumPP's (ungated) install rules stay out of the wheel (scikit-build-core
+        # is told to install just the `python` component).
+        install(TARGETS cyberfluids_c
+            LIBRARY DESTINATION cyberfluids COMPONENT python
+            RUNTIME DESTINATION cyberfluids COMPONENT python)
+    endif()
 endif()
 
 # Optional Apple Metal GPU backend (defines cyberfluids_metal + CYBERFLUIDS_HAVE_METAL).

@@ -64,6 +64,24 @@ fallback (a build-only mode). Install/export SHALL be toggleable via `-DCYBERFLU
 - **THEN** the install/export rules SHALL be skipped with a clear message, since the fetched
   NumPP is not an installed package the exported config could re-resolve
 
+### Requirement: Self-contained Python wheel
+The Python binding SHALL be installable with `pip install` such that the native C ABI is built
+and bundled automatically — no separate manual C++ build. The build backend (scikit-build-core)
+SHALL drive the CMake build, resolve NumPP without manual setup, and statically link it into a
+single `libcyberfluids_c` shared library placed inside the installed package, so the wheel has no
+external `libnumpp` runtime dependency. The binding SHALL load the bundled library from the
+installed package, and `$CYBERFLUIDS_LIBRARY` SHALL still override it with an explicit path.
+
+#### Scenario: pip install builds and bundles the native library
+- **WHEN** `pip install ./bindings/python` is run in a clean environment with a C++20 toolchain
+- **THEN** the C ABI SHALL be compiled with NumPP statically linked, bundled into the installed
+  `cyberfluids` package, and `import cyberfluids` SHALL load it and run a simulation without any
+  manually pre-built library
+
+#### Scenario: Explicit library override
+- **WHEN** `$CYBERFLUIDS_LIBRARY` points to a prebuilt `libcyberfluids_c`
+- **THEN** the binding SHALL load that library in preference to the bundled one
+
 ### Requirement: Backend feature flags
 The build SHALL enable the CPU backend by default and expose off-by-default flags for the
 CUDA, Metal, and OpenCL/SYCL backends. Absence of a GPU toolkit SHALL NOT break the CPU

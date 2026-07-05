@@ -7,8 +7,9 @@ openspec/specs/language-bindings/spec.md.
 
 Locating the shared library (first that loads wins):
   1. $CYBERFLUIDS_LIBRARY (explicit path)
-  2. the repo build tree (build/, build/lib/)
-  3. the system loader (ctypes.util.find_library)
+  2. the library bundled in this package (installed wheel)
+  3. the repo build tree (build/, build/lib/) for in-repo development
+  4. the system loader (ctypes.util.find_library)
 """
 
 from __future__ import annotations
@@ -30,11 +31,16 @@ def _candidate_paths():
     if env:
         yield env
     here = pathlib.Path(__file__).resolve()
-    # bindings/python/cyberfluids/__init__.py -> repo root is parents[3]
-    repo = here.parents[3]
-    for d in (repo / "build", repo / "build" / "lib"):
-        for name in _LIB_NAMES:
-            yield str(d / name)
+    # 1) bundled in this package (installed wheel: the .so sits next to __init__.py).
+    for name in _LIB_NAMES:
+        yield str(here.parent / name)
+    # 2) the repo build tree, for `PYTHONPATH=bindings/python` in-repo development.
+    #    bindings/python/cyberfluids/__init__.py -> repo root is parents[3].
+    if len(here.parents) > 3:
+        repo = here.parents[3]
+        for d in (repo / "build", repo / "build" / "lib"):
+            for name in _LIB_NAMES:
+                yield str(d / name)
     found = ctypes.util.find_library("cyberfluids_c")
     if found:
         yield found

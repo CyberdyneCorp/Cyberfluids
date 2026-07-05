@@ -1,6 +1,6 @@
 [build-system]
-requires = ["setuptools>=64"]
-build-backend = "setuptools.build_meta"
+requires = ["scikit-build-core>=0.8"]
+build-backend = "scikit_build_core.build"
 
 [project]
 name = "cyberfluids"
@@ -8,8 +8,29 @@ version = "0.0.1"
 description = "Python binding for the Cyberfluids C++20 Lattice Boltzmann CFD engine"
 readme = "README.md"
 requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "CyberdyneCorp" }]
 dependencies = ["numpy>=1.20"]
 
-[tool.setuptools.packages.find]
-where = ["."]
-include = ["cyberfluids*"]
+[project.urls]
+Homepage = "https://github.com/CyberdyneCorp/Cyberfluids"
+Source = "https://github.com/CyberdyneCorp/Cyberfluids"
+
+# scikit-build-core drives the repo-root CMake build during `pip install` /
+# `pip wheel`, so the C ABI is compiled and bundled — no manual C++ build. NumPP
+# is resolved by CMake's FetchContent fallback (pinned tag) and statically linked
+# into the packaged libcyberfluids_c, so the wheel ships a single self-contained
+# shared library alongside the Python package.
+[tool.scikit-build]
+cmake.source-dir = "../.."
+cmake.version = ">=3.24"
+wheel.packages = ["cyberfluids"]
+# Install only the `python` component (the C ABI library), keeping the fetched
+# NumPP's own install artifacts out of the wheel.
+install.components = ["python"]
+
+[tool.scikit-build.cmake.define]
+CYBERFLUIDS_PYTHON_WHEEL = "ON"
+CYBERFLUIDS_BUILD_TESTS = "OFF"
+CYBERFLUIDS_BUILD_EXAMPLES = "OFF"
+CMAKE_BUILD_TYPE = "Release"
