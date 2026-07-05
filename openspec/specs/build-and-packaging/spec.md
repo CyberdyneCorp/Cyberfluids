@@ -18,12 +18,15 @@ core library and its test suite. The build SHALL succeed on GCC, Clang, and Appl
   available to CTest
 
 ### Requirement: NumPP and SciPP dependency resolution
-The build SHALL obtain NumPP (and, when it exports install rules, SciPP) as build dependencies
-via a local install prefix — `scripts/bootstrap_deps.sh` builds and installs them into `.deps/`,
-where CMake's `find_package(NumPP CONFIG)` / `find_package(SciPP CONFIG)` resolve them — without
-requiring a manual system-wide install and without pulling in generic third-party math
-libraries. In production these instead come from a package manager (Conan/vcpkg). SciPP is
-optional today (no target links it yet); its absence SHALL NOT break the build.
+The build SHALL resolve NumPP (and, when it exports install rules, SciPP) without requiring a
+manual system-wide install and without pulling in generic third-party math libraries. It SHALL
+prefer an installed CONFIG package — `scripts/bootstrap_deps.sh` builds and installs them into
+`.deps/`, where `find_package(NumPP CONFIG)` / `find_package(SciPP CONFIG)` resolve them — and,
+when NumPP is not installed, SHALL fall back to fetching it from a **pinned** git tag via
+FetchContent so a plain `cmake -B build` works with no manual sibling checkout. The fetch
+fallback SHALL be disableable (`-DCYBERFLUIDS_FETCH_DEPS=OFF`) for offline/vendored builds. In
+production these instead come from a package manager (Conan/vcpkg). SciPP is optional today (no
+target links it yet); its absence SHALL NOT break the build.
 
 #### Scenario: Dependencies resolved from the bootstrap prefix
 - **WHEN** `scripts/bootstrap_deps.sh` has installed NumPP into `.deps/` and the project is
@@ -31,10 +34,35 @@ optional today (no target links it yet); its absence SHALL NOT break the build.
 - **THEN** `find_package(NumPP CONFIG)` SHALL resolve NumPP from `.deps/`, the NumPP-backed
   targets SHALL build, and no other generic math/array library SHALL be required
 
-#### Scenario: Missing dependency fails clearly, not silently
-- **WHEN** the project is configured without NumPP installed under the deps prefix
+#### Scenario: Zero-setup build via the pinned fetch fallback
+- **WHEN** the project is configured with no installed NumPP and the fetch fallback enabled
+  (the default)
+- **THEN** CMake SHALL fetch NumPP at the pinned tag via FetchContent and build the NumPP-backed
+  targets in-tree, without requiring a manual NumPP checkout
+
+#### Scenario: Fetch fallback disabled
+- **WHEN** the project is configured with `-DCYBERFLUIDS_FETCH_DEPS=OFF` and no installed NumPP
 - **THEN** CMake SHALL report NumPP as not found and skip the NumPP-backed targets rather than
-  fetching an unpinned copy from the network
+  fetching from the network
+
+### Requirement: Installable find_package(Cyberfluids) package
+When NumPP is available as an installed CONFIG package, the build SHALL install Cyberfluids as a
+consumable package: the public headers, the C ABI shared library (with a semver `SOVERSION`), and
+a `CyberfluidsConfig.cmake` + version file that export namespaced targets (`Cyberfluids::core`,
+`Cyberfluids::c`) and re-resolve NumPP via `find_dependency`. Because the install re-resolves
+NumPP as a package, install/export SHALL be disabled when NumPP came from the FetchContent
+fallback (a build-only mode). Install/export SHALL be toggleable via `-DCYBERFLUIDS_INSTALL`.
+
+#### Scenario: Downstream project consumes the installed package
+- **WHEN** Cyberfluids is installed to a prefix and a separate CMake project calls
+  `find_package(Cyberfluids)` and links `Cyberfluids::core` / `Cyberfluids::c`
+- **THEN** the config SHALL be found, NumPP SHALL be re-resolved transitively, and the downstream
+  project SHALL configure, build, and run against the installed headers and library
+
+#### Scenario: Install skipped for a fetch-only build
+- **WHEN** the project is built with NumPP obtained via the FetchContent fallback
+- **THEN** the install/export rules SHALL be skipped with a clear message, since the fetched
+  NumPP is not an installed package the exported config could re-resolve
 
 ### Requirement: Backend feature flags
 The build SHALL enable the CPU backend by default and expose off-by-default flags for the

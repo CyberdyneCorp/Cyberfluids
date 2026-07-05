@@ -1,0 +1,11 @@
+@PACKAGE_INIT@
+
+# Cyberfluids public headers include NumPP, and the C ABI library links it, so a
+# consumer of an installed Cyberfluids needs NumPP discoverable too. Re-resolve it
+# transitively (the same CONFIG package the build used).
+include(CMakeFindDependencyMacro)
+find_dependency(NumPP CONFIG)
+
+include("${CMAKE_CURRENT_LIST_DIR}/CyberfluidsTargets.cmake")
+
+check_required_components(Cyberfluids)
