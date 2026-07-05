@@ -33,6 +33,22 @@ if(CYBERFLUIDS_HAVE_NUMPP)
         add_test(NAME cmg_roundtrip COMMAND test_cmg_roundtrip)
     endif()
 
+    # OpenCL GPU wind-tunnel test — built only when the OpenCL backend is present.
+    if(CYBERFLUIDS_HAVE_OPENCL)
+        add_executable(test_opencl_wind_tunnel test_opencl_wind_tunnel.cpp)
+        target_link_libraries(test_opencl_wind_tunnel PRIVATE cyberfluids_core numpp::numpp cyberfluids_opencl)
+        target_include_directories(test_opencl_wind_tunnel PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+        add_test(NAME opencl_wind_tunnel COMMAND test_opencl_wind_tunnel)
+    endif()
+
+    # CUDA GPU wind-tunnel test — built only when the CUDA backend is present.
+    if(CYBERFLUIDS_HAVE_CUDA)
+        add_executable(test_cuda_wind_tunnel test_cuda_wind_tunnel.cpp)
+        target_link_libraries(test_cuda_wind_tunnel PRIVATE cyberfluids_core numpp::numpp cyberfluids_cuda)
+        target_include_directories(test_cuda_wind_tunnel PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+        add_test(NAME cuda_wind_tunnel COMMAND test_cuda_wind_tunnel)
+    endif()
+
     # Metal GPU cavity test — built only when the Metal backend is present.
     if(CYBERFLUIDS_HAVE_METAL)
         add_executable(test_metal_cavity test_metal_cavity.cpp)

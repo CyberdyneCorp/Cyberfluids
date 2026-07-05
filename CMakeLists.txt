@@ -72,6 +72,12 @@ endif()
 # Optional Apple Metal GPU backend (defines cyberfluids_metal + CYBERFLUIDS_HAVE_METAL).
 include(cmake/CyberfluidsMetal.cmake)
 
+# Optional OpenCL GPU backend (defines cyberfluids_opencl + CYBERFLUIDS_HAVE_OPENCL).
+include(cmake/CyberfluidsOpenCL.cmake)
+
+# Optional CUDA GPU backend (defines cyberfluids_cuda + CYBERFLUIDS_HAVE_CUDA).
+include(cmake/CyberfluidsCUDA.cmake)
+
 # Optional STL/OBJ geometry import (defines cyberfluids_geometry + CYBERFLUIDS_HAVE_GEOMETRY).
 include(cmake/CyberfluidsGeometry.cmake)
 
