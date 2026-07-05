@@ -139,11 +139,32 @@ Run the demos and the Palabos-oracle regression directly:
 ctest --test-dir build -R oracle_cavity --output-on-failure
 ```
 
-Enable the **Metal** GPU backend (Apple Silicon) — a D2Q9 BGK lid-driven cavity on the GPU,
-validated to match the CPU solver (CUDA/OpenCL are still stubs):
+### 🛠️ With `just` (recommended)
+
+A [`justfile`](justfile) wraps the common workflows and handles the platform quirks (Linux TBB
+linking, CUDA PTX arch) for you:
 
 ```bash
-cmake -B build -DCYBERFLUIDS_METAL=ON            # builds cyberfluids_metal + the metal_cavity test
+just bootstrap        # build + install NumPP into .deps/
+just test             # configure + build + full CTest suite (CPU)
+just gpu-detect       # which GPU backends does this host have?
+just gpu              # auto-enable every GPU backend present, build + test
+just cuda             # build + test the CUDA wind tunnel
+just opencl           # build + test the OpenCL wind tunnel
+just bench            # throughput: CPU vs enabled GPU backends (GLUPS)
+```
+
+### GPU backends
+
+The **CUDA** and **OpenCL** D3Q19 wind-tunnel solvers are real device-kernel paths, validated
+to ~1e-5 vs the fp64 CPU oracle (see [docs/backends.md](docs/backends.md)). **Metal** (Apple
+Silicon) accelerates a D2Q9 BGK lid-driven cavity. Enable them explicitly, or let `just gpu`
+detect what's available:
+
+```bash
+cmake -B build -DCYBERFLUIDS_CUDA=ON             # NVIDIA (nvcc + driver)
+cmake -B build -DCYBERFLUIDS_OPENCL=ON           # any OpenCL 1.2+ device
+cmake -B build -DCYBERFLUIDS_METAL=ON            # Apple Silicon (Metal)
 ```
 
 ## 💻 Examples
@@ -247,10 +268,11 @@ tunnel.writeVTK("car.vtk")                       // open in ParaView
 
 ## 📊 Status at a glance
 
-Cyberfluids runs on **CPU** (`std::execution::par_unseq` with a serial fallback) and **Metal**
-(Apple Silicon); CUDA and OpenCL/SYCL sit behind a locked backend seam. The physics — BGK/TRT/MRT
-(2D **and** 3D)/regularized/forced dynamics, Shan-Chen multiphase, thermal Boussinesq, porous
-media, and STL geometry with off-lattice bounce-back — is implemented and validated.
+Cyberfluids runs on **CPU** (`std::execution::par_unseq` with a serial fallback), **CUDA** and
+**OpenCL** (validated D3Q19 wind-tunnel device kernels, ~30× the parallel CPU on an RTX 5060), and
+**Metal** (Apple Silicon, D2Q9 cavity); SYCL sits behind the locked backend seam. The physics —
+BGK/TRT/MRT (2D **and** 3D)/regularized/forced dynamics, Shan-Chen multiphase, thermal Boussinesq,
+porous media, and STL geometry with off-lattice bounce-back — is implemented and validated.
 
 - **[Feature overview & status →](docs/features.md)** — capability-by-capability, linked to specs
 - **[Backends →](docs/backends.md)** — the CPU/GPU matrix and how backend switching works
