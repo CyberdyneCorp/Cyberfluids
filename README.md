@@ -312,11 +312,19 @@ worldwide LBM community through Palabos. In tests, identical setups run in both 
 their macroscopic fields are compared within a documented tolerance — see
 [oracle validation](docs/oracle-validation.md).
 
+## 🧭 Versioning & API stability
+
+Cyberfluids is **pre-1.0 (`0.0.x`)**: the API is still settling, and minor/patch releases may
+carry breaking changes until `1.0`. The C ABI shared library carries a semver `SOVERSION`
+(`libcyberfluids_c.so.<major>`) so consumers can pin ABI compatibility. Notable changes are
+tracked in [CHANGELOG.md](CHANGELOG.md).
+
 ## 🤝 Contributing
 
 Work is spec-driven. Before writing code, read the relevant spec in `openspec/specs/`, and
 open changes through the OpenSpec workflow (`/opsx:propose`). Every bug fix ships with a
-regression test.
+regression test. See **[CONTRIBUTING.md](CONTRIBUTING.md)** for the full workflow, the
+[Code of Conduct](CODE_OF_CONDUCT.md), and [security reporting](SECURITY.md).
 
 ## 📄 License
 
