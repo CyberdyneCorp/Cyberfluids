@@ -48,13 +48,13 @@ __constant__ float dWt[19] = {0.333333333f,
 }  // namespace
 
 // Porous convex-blend collide, in place (force = 0).
-__global__ void collideKernel(float* f, const float* ns, long n, float omega) {
-    long g = (long)blockIdx.x * blockDim.x + threadIdx.x;
+__global__ void collideKernel(float* f, const float* ns, long long n, float omega) {
+    long long g = (long long)blockIdx.x * blockDim.x + threadIdx.x;
     if (g >= n) return;
     float fi[19];
     float rho = 0.f, jx = 0.f, jy = 0.f, jz = 0.f;
     for (int i = 0; i < 19; ++i) {
-        float v = f[(long)i * n + g];
+        float v = f[(long long)i * n + g];
         fi[i] = v; rho += v;
         jx += v * dCx[i]; jy += v * dCy[i]; jz += v * dCz[i];
     }
@@ -66,36 +66,36 @@ __global__ void collideKernel(float* f, const float* ns, long n, float omega) {
         float ciu = dCx[i] * ux + dCy[i] * uy + dCz[i] * uz;
         float feq = dWt[i] * rho * (1.f + 3.f * ciu + 4.5f * ciu * ciu - 1.5f * uSqr);
         float bgk = fi[i] - omega * (fi[i] - feq);
-        f[(long)i * n + g] = fluid * bgk + s * fi[dOpp[i]];
+        f[(long long)i * n + g] = fluid * bgk + s * fi[dOpp[i]];
     }
 }
 
 // Stream + boundary conditions: outlet copy / free-stream Dirichlet / interior pull.
 __global__ void streamKernel(const float* src, float* dst, const float* ns, float uIn, int nx,
-                             int ny, int nz, long n) {
-    long g = (long)blockIdx.x * blockDim.x + threadIdx.x;
+                             int ny, int nz, long long n) {
+    long long g = (long long)blockIdx.x * blockDim.x + threadIdx.x;
     if (g >= n) return;
-    long z = g % nz, y = (g / nz) % ny, x = g / ((long)ny * nz);
+    long long z = g % nz, y = (g / nz) % ny, x = g / ((long long)ny * nz);
     if (x == nx - 1) {
-        long up = (((long)(nx - 2) * ny + y) * nz + z);
-        for (int i = 0; i < 19; ++i) dst[(long)i * n + g] = src[(long)i * n + up];
+        long long up = (((long long)(nx - 2) * ny + y) * nz + z);
+        for (int i = 0; i < 19; ++i) dst[(long long)i * n + g] = src[(long long)i * n + up];
         return;
     }
     if (x == 0 || y == 0 || y == ny - 1 || z == 0 || z == nz - 1) {
         if (ns[g] > 0.5f) {
-            for (int i = 0; i < 19; ++i) dst[(long)i * n + g] = src[(long)i * n + g];
+            for (int i = 0; i < 19; ++i) dst[(long long)i * n + g] = src[(long long)i * n + g];
         } else {
             float uSqr = uIn * uIn;
             for (int i = 0; i < 19; ++i) {
                 float ciu = dCx[i] * uIn;
-                dst[(long)i * n + g] = dWt[i] * (1.f + 3.f * ciu + 4.5f * ciu * ciu - 1.5f * uSqr);
+                dst[(long long)i * n + g] = dWt[i] * (1.f + 3.f * ciu + 4.5f * ciu * ciu - 1.5f * uSqr);
             }
         }
         return;
     }
     for (int i = 0; i < 19; ++i) {
-        long sx = x - dCx[i], sy = y - dCy[i], sz = z - dCz[i];
-        dst[(long)i * n + g] = src[(long)i * n + ((sx * ny + sy) * nz + sz)];
+        long long sx = x - dCx[i], sy = y - dCy[i], sz = z - dCz[i];
+        dst[(long long)i * n + g] = src[(long long)i * n + ((sx * ny + sy) * nz + sz)];
     }
 }
 
@@ -207,7 +207,7 @@ void WindTunnelCuda::run(std::int64_t steps) {
     auto& im = *impl_;
     const int threads = 256;
     const int blocks = static_cast<int>((im.ncells + threads - 1) / threads);
-    const long n = static_cast<long>(im.ncells);
+    const long long n = static_cast<long long>(im.ncells);
     for (std::int64_t s = 0; s < steps; ++s) {
         collideKernel<<<blocks, threads>>>(im.cur, im.nsBuf, n, im.omega);
         streamKernel<<<blocks, threads>>>(im.cur, im.other, im.nsBuf, im.uIn,
@@ -215,6 +215,7 @@ void WindTunnelCuda::run(std::int64_t steps) {
                                           static_cast<int>(im.nz), n);
         std::swap(im.cur, im.other);
     }
+    cudaCheck(cudaGetLastError(), "kernel launch");
     cudaCheck(cudaDeviceSynchronize(), "run sync");
     im.cacheValid = false;
 }
