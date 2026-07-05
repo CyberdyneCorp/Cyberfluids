@@ -68,4 +68,5 @@ just bench 256 128 128 300
 ```
 
 The benchmark (`bench/wind_tunnel_bench.cpp`) times an identical wind-tunnel run per backend and
-reports GLUPS (giga lattice-updates/sec) plus the speed-up over the CPU baseline.
+reports GLUPS (giga lattice-updates/sec) plus the speed-up over the CPU baseline. Recorded
+reference results and methodology live in [benchmarks.md](benchmarks.md).

@@ -1,7 +1,12 @@
 # external-fields Specification
 
 ## Purpose
-TBD - created by archiving change add-external-fields. Update Purpose after archive.
+
+Define node-local per-cell external fields — a Structure-of-Arrays store (`ExternalField`) of
+per-cell scalars (e.g. body force, advection velocity) that share the populations' stride so a
+`Cell` addresses them uniformly, are left in place by streaming, and cost nothing when a
+descriptor declares no external scalars. These fields back forced dynamics and fluid→AD coupling.
+
 ## Requirements
 ### Requirement: Per-cell external-field storage
 The library SHALL provide `ExternalField<T, Descriptor>` — a Structure-of-Arrays store of

@@ -1,7 +1,12 @@
 # oracle-validation Specification
 
 ## Purpose
-TBD - created by archiving change bootstrap-cyberfluids-core. Update Purpose after archive.
+
+Define how Cyberfluids results are validated against an external numerical oracle (Palabos):
+identical physical setups run in both codes and their macroscopic fields compared over interior
+nodes within a documented tolerance, so regressions in the physics are caught automatically. The
+oracle reference data is frozen in-repo, so validation requires no external solver at test time.
+
 ## Requirements
 ### Requirement: Palabos as numerical oracle
 The test suite SHALL validate Cyberfluids against Palabos as a numerical oracle: for a given

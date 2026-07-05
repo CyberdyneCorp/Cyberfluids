@@ -14,7 +14,7 @@ Legend: ✅ implemented · 🟡 partial (MVP subset) · 📋 planned.
 | [Collision dynamics](../openspec/specs/collision-dynamics/spec.md) | BGK, TRT, MRT, regularized, forced, advection-diffusion; `omega = 1/tau` | ✅ BGK · TRT · MRT (D2Q9 **and D3Q19**) · regularized · forced (uniform + per-cell) · advection-diffusion |
 | [Streaming & time step](../openspec/specs/streaming-and-timestep/spec.md) | collide / stream / fused collideAndStream | ✅ Implemented |
 | [Boundary conditions](../openspec/specs/boundary-conditions/spec.md) | Bounce-back, Zou/He velocity, periodic, off-lattice STL | ✅ bounce-back · moving-wall · Zou/He · periodic · off-lattice STL (partial bounce-back) |
-| [Hardware backends](../openspec/specs/hardware-backends/spec.md) | CPU `par_unseq`; optional CUDA / Metal / OpenCL / SYCL; no MPI | 🟡 CPU + Metal (D2Q9 BGK cavity, fp32) implemented; CUDA/OpenCL stubs |
+| [Hardware backends](../openspec/specs/hardware-backends/spec.md) | CPU `par_unseq`; optional CUDA / Metal / OpenCL / SYCL; no MPI | ✅ CPU · CUDA · OpenCL (D3Q19 wind tunnel, validated ~1e-5 vs fp64 oracle) · Metal (D2Q9 cavity); SYCL planned |
 | [Physical models](../openspec/specs/physical-models/spec.md) | Navier-Stokes, Shan-Chen multiphase, porous media, thermal | ✅ Navier-Stokes · Shan-Chen multiphase (single + multi-component) · thermal Boussinesq · porous media (partial bounce-back) |
 | [Geometry & I/O](../openspec/specs/geometry-and-io/spec.md) | STL import + voxelization, VTK output, checkpoint/restart | ✅ VTK + checkpoint/restart + centerline CSV + STL/OBJ import & voxelization (CyberMeshGenerator) |
 | [Language bindings](../openspec/specs/language-bindings/spec.md) | Python (NumPy interop) and Swift | ✅ Both, over a shared C ABI; zero-copy DLPack; 3D wind-tunnel binding |
@@ -35,8 +35,10 @@ Each capability is delivered as its own OpenSpec change (see
   partial bounce-back, VTK output, and bit-exact checkpoint/restart.
 - **Solvers & bindings:** a 3D wind tunnel (external flow past an imported mesh), driven from Python
   with zero-copy DLPack interop and VTK export; Python + Swift over a shared C ABI.
-- **Backends & validation:** CPU (`par_unseq` + serial fallback) and Metal (Apple Silicon); a
-  2D + 3D Palabos oracle; a GitHub Actions CI pipeline.
+- **Backends & validation:** CPU (`par_unseq` + serial fallback), CUDA and OpenCL (D3Q19
+  wind-tunnel device kernels, ~30× the parallel CPU on an RTX 5060 — see
+  [benchmarks](benchmarks.md)), and Metal (Apple Silicon); a 2D + 3D Palabos oracle; a GitHub
+  Actions CI pipeline.
 
-- **Planned follow-ups:** CUDA / OpenCL / SYCL device kernels (seam locked), iOS / Android
-  toolchains, and momentum-exchange drag/lift reporting. Each becomes its own OpenSpec change.
+- **Planned follow-ups:** SYCL device kernels (seam locked), iOS / Android toolchains, and
+  momentum-exchange drag/lift reporting. Each becomes its own OpenSpec change.

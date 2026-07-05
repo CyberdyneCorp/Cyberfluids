@@ -59,8 +59,9 @@ python examples/wind_tunnel.py --stl your_model.stl --resolution 48 --out car.vt
 
 - **Zero-legacy C++20** — Concepts, Ranges, smart pointers, contiguous data. No raw owning
   pointers, no legacy macros.
-- **CyberdyneCorp ecosystem** — NumPP tensors store the LBM populations; SciPP powers
-  linear algebra, optimization, and statistics. One coherent numerical style.
+- **CyberdyneCorp ecosystem** — NumPP tensors store the LBM populations; SciPP (linear algebra,
+  optimization, statistics) is wired into the build for the numerical work ahead. One coherent
+  numerical style.
 - **Single-node extreme performance, no MPI** — `std::execution::par_unseq` saturates every
   CPU core; code shaped for auto-vectorization (AVX-512, ARM Neon).
 - **Hardware abstraction** — the fluid physics is fully decoupled from the compute driver.
@@ -285,6 +286,7 @@ porous media, and STL geometry with off-lattice bounce-back — is implemented a
 | [Architecture](docs/architecture.md) | Layers, abstraction seams, data flow |
 | [Features](docs/features.md) | Capability-by-capability overview & status |
 | [Backends](docs/backends.md) | CPU and GPU backends, how switching works |
+| [Benchmarks](docs/benchmarks.md) | Throughput (GLUPS) reference results across backends |
 | [Oracle validation](docs/oracle-validation.md) | How Palabos is used to validate results |
 | [Bindings](bindings/README.md) | Building and using the Python and Swift bindings |
 | [Roadmap](docs/roadmap.md) | Release milestones after the MVP |
