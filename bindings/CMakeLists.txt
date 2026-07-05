@@ -12,6 +12,18 @@ if(CYBERFLUIDS_PYTHON3)
                 "CYBERFLUIDS_LIBRARY=$<TARGET_FILE:cyberfluids_c>"
                 "PYTHONPATH=${CMAKE_CURRENT_SOURCE_DIR}/python"
                 ${CYBERFLUIDS_PYTHON3} ${CMAKE_CURRENT_SOURCE_DIR}/python/smoke_test.py)
+        # DLPack zero-copy interop (self-skips if numpy<1.23 / no from_dlpack).
+        add_test(NAME python_dlpack
+            COMMAND ${CMAKE_COMMAND} -E env
+                "CYBERFLUIDS_LIBRARY=$<TARGET_FILE:cyberfluids_c>"
+                "PYTHONPATH=${CMAKE_CURRENT_SOURCE_DIR}/python"
+                ${CYBERFLUIDS_PYTHON3} ${CMAKE_CURRENT_SOURCE_DIR}/python/test_dlpack.py)
+        # Wind-tunnel binding smoke (analytic sphere; no geometry build needed).
+        add_test(NAME python_wind_tunnel
+            COMMAND ${CMAKE_COMMAND} -E env
+                "CYBERFLUIDS_LIBRARY=$<TARGET_FILE:cyberfluids_c>"
+                "PYTHONPATH=${CMAKE_CURRENT_SOURCE_DIR}/python"
+                ${CYBERFLUIDS_PYTHON3} ${CMAKE_CURRENT_SOURCE_DIR}/python/test_wind_tunnel.py)
     else()
         message(STATUS "Cyberfluids: numpy not available; skipping Python binding test")
     endif()

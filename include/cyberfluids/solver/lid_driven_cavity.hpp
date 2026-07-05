@@ -9,6 +9,7 @@
 #include "cyberfluids/backend/backend.hpp"
 #include "cyberfluids/boundary/bounce_back.hpp"
 #include "cyberfluids/core/descriptors.hpp"
+#include "cyberfluids/core/fields.hpp"
 #include "cyberfluids/core/lattice.hpp"
 #include "cyberfluids/core/populations.hpp"
 #include "cyberfluids/dynamics/bgk.hpp"
@@ -42,6 +43,8 @@ public:
           lidU_(lidVelocity),
           lattice_(nx, ny),
           scratch_(nx * ny),
+          rhoField_(nx, ny),
+          uField_(nx, ny),
           dyn_(std::make_shared<Dyn>(omega)) {
         lattice_.attributeDynamics(lattice_.getBoundingBox(), dyn_);
         initEquilibrium(T(1), {T(0), T(0)});
@@ -80,6 +83,25 @@ public:
         dyn_->computeVelocity(cell, u);
         return u;
     }
+
+    /// Recompute the cached macroscopic density and velocity fields from the
+    /// current populations. These caches are written in place (unlike the
+    /// populations buffer, which is swapped each step), so a tensor exported
+    /// from densityField()/velocityField() keeps aliasing the same storage and
+    /// reflects fresh values after each refresh.
+    void refreshMacroscopic() {
+        for (std::int64_t x = 0; x < nx_; ++x)
+            for (std::int64_t y = 0; y < ny_; ++y) {
+                auto cell = lattice_.get(x, y);
+                rhoField_(x, y) = dyn_->computeDensity(cell);
+                std::array<T, 2> u{};
+                dyn_->computeVelocity(cell, u);
+                uField_(x, y, 0) = u[0];
+                uField_(x, y, 1) = u[1];
+            }
+    }
+    ScalarField<T, 2>& densityField() { return rhoField_; }
+    TensorField<T, 2, 2>& velocityField() { return uField_; }
 
     T totalMass() {
         T m = T(0);
@@ -133,6 +155,8 @@ private:
     T lidU_;
     BlockLattice2D<T, D> lattice_;
     PopulationField<T, D> scratch_;
+    ScalarField<T, 2> rhoField_;   // macroscopic caches for zero-copy export
+    TensorField<T, 2, 2> uField_;  // (written in place; stable across steps)
     std::shared_ptr<Dyn> dyn_;
 };
 

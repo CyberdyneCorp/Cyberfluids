@@ -5,13 +5,13 @@
 **A next-generation, zero-legacy Computational Fluid Dynamics engine — the Lattice Boltzmann Method in pure, modern C++20.**
 
 ![status](https://img.shields.io/badge/status-alpha-orange)
-![tests](https://img.shields.io/badge/tests-24%2F24%20passing-brightgreen)
+![tests](https://img.shields.io/badge/tests-36%2F36%20passing-brightgreen)
 ![oracle](https://img.shields.io/badge/Palabos%20oracle-~0.8%25%20RMS-brightgreen)
 ![C++](https://img.shields.io/badge/C%2B%2B-20-blue)
 ![backends](https://img.shields.io/badge/backends-CPU%20%7C%20CUDA%20%7C%20Metal%20%7C%20OpenCL%2FSYCL-informational)
 ![platforms](https://img.shields.io/badge/platforms-desktop%20%7C%20iOS%20%7C%20Android-success)
 ![bindings](https://img.shields.io/badge/bindings-Python%20%7C%20Swift-yellow)
-![license](https://img.shields.io/badge/license-TBD-lightgrey)
+![license](https://img.shields.io/badge/license-MIT-green)
 
 </div>
 
@@ -35,8 +35,25 @@ MPI** and **no generic third-party math libraries**.
 > a working slice: D2Q9/D3Q19 descriptors, BGK collision, streaming, bounce-back + Zou/He +
 > periodic boundaries, a CPU (`std::execution`) backend, 2D/3D lid-driven cavities, Python +
 > Swift bindings, and a Palabos oracle regression test. The examples below use the **real
-> API**. Broader physics (TRT/MRT, multiphase, thermal), GPU backends, and STL geometry are
-> the planned follow-ups tracked in the [feature table](#-feature-status).
+> API**. Capability status is tracked in the [feature overview](docs/features.md).
+
+## 🏎️ See it in action
+
+<div align="center">
+
+![Flow past a car in the Cyberfluids wind tunnel](docs/images/wind_tunnel_oldcar.png)
+
+</div>
+
+Steady-state flow past an imported **STL car** in the Cyberfluids wind tunnel (Re ≈ 100):
+the mesh is voxelized onto a D3Q19 lattice and enforced as no-slip via partial bounce-back,
+then the flow is driven by a free-stream inlet. Streamlines are colored by speed and
+rendered in ParaView from the exported VTK. Reproduce it end-to-end from Python:
+
+```bash
+python examples/wind_tunnel.py --stl your_model.stl --resolution 48 --out car.vtk
+# open car.vtk in ParaView → Contour on 'solid' (body) + Stream Tracer on 'velocity'
+```
 
 ## ✨ Highlights
 
@@ -179,39 +196,15 @@ let u = cav.velocity()                           // [Double], length nx*ny*2 (ro
 
 See [`bindings/README.md`](bindings/README.md) for building and linking the bindings.
 
-## ⚙️ Backends
+## 📊 Status at a glance
 
-| Backend | Target hardware | Status |
-|---|---|---|
-| **CPU** (`std::execution::par_unseq`) | All x86-64 (AVX-512) & ARM64 (Neon) | ✅ Implemented (par_unseq + serial fallback) |
-| **CUDA** | NVIDIA GeForce / Quadro / Tesla | 📋 Stub (seam locked) |
-| **Metal** | Apple Silicon (Mac, iPad) | ✅ D2Q9 BGK cavity (fp32) — Objective-C++ + MSL |
-| **OpenCL / SYCL** | AMD, Intel, integrated GPUs | 📋 Stub (seam locked) |
+Cyberfluids runs on **CPU** (`std::execution::par_unseq` with a serial fallback) and **Metal**
+(Apple Silicon); CUDA and OpenCL/SYCL sit behind a locked backend seam. The physics — BGK/TRT/MRT
+(2D **and** 3D)/regularized/forced dynamics, Shan-Chen multiphase, thermal Boussinesq, porous
+media, and STL geometry with off-lattice bounce-back — is implemented and validated.
 
-## 📊 Feature status
-
-Authoritative behavior lives in the OpenSpec capability specs (linked). Status reflects
-implementation, not specification. Legend: ✅ implemented · 🟡 partial (MVP subset) · 📋 planned.
-
-| Capability | Spec | Status |
-|---|---|---|
-| NumPP/SciPP foundation | [spec](openspec/specs/numpp-scipp-foundation/spec.md) | 🟡 NumPP integrated (SoA populations, fields); SciPP wired, not yet used |
-| Lattice descriptors | [spec](openspec/specs/lattice-descriptors/spec.md) | 🟡 D2Q9 · D3Q19 · D3Q27 · D2Q5 · D3Q7 + forced/advected variants (WithSource planned) |
-| Core data structures | [spec](openspec/specs/core-data-structures/spec.md) | ✅ BlockLattice · Cell · Scalar/Tensor fields |
-| External fields | [spec](openspec/specs/external-fields/spec.md) | ✅ per-cell force / advection velocity (SoA, zero-cost when absent) + fluid→AD coupling |
-| Collision dynamics | [spec](openspec/specs/collision-dynamics/spec.md) | 🟡 BGK · TRT · MRT (D2Q9) · regularized · forced (uniform + per-cell) · advection-diffusion; MRT-3D planned |
-| Streaming & time step | [spec](openspec/specs/streaming-and-timestep/spec.md) | ✅ collide / stream / fused collideAndStream |
-| Boundary conditions | [spec](openspec/specs/boundary-conditions/spec.md) | 🟡 bounce-back · moving-wall · Zou/He (top) · periodic (STL / all-faces planned) |
-| Hardware backends | [spec](openspec/specs/hardware-backends/spec.md) | 🟡 CPU + Metal (D2Q9 cavity, fp32) implemented; CUDA/OpenCL stubs |
-| Physical models | [spec](openspec/specs/physical-models/spec.md) | 🟡 Navier-Stokes cavity + AD transport + thermal Boussinesq + Shan-Chen multiphase; porous planned |
-| Geometry & I/O | [spec](openspec/specs/geometry-and-io/spec.md) | 🟡 VTK + checkpoint/restart + centerline CSV; STL/voxelization planned |
-| Language bindings (Python · Swift) | [spec](openspec/specs/language-bindings/spec.md) | ✅ both, over a shared C ABI |
-| Platform support | [spec](openspec/specs/platform-support/spec.md) | 🟡 desktop/server (iOS · Android toolchains planned) |
-| Oracle validation | [spec (delta)](openspec/changes/bootstrap-cyberfluids-core/specs/oracle-validation/spec.md) | ✅ 2D cavity vs Palabos (~0.8% RMS of U); 3D planned |
-
-**MVP change:** [`bootstrap-cyberfluids-core`](openspec/changes/bootstrap-cyberfluids-core) —
-D2Q9+D3Q19, BGK, CPU backend, 2D/3D lid-driven cavity, Palabos oracle, Python/Swift bindings.
-See its [tasks](openspec/changes/bootstrap-cyberfluids-core/tasks.md).
+- **[Feature overview & status →](docs/features.md)** — capability-by-capability, linked to specs
+- **[Backends →](docs/backends.md)** — the CPU/GPU matrix and how backend switching works
 
 ## 📚 Documentation
 
@@ -242,5 +235,5 @@ regression test.
 
 ## 📄 License
 
-License **TBD**. NumPP and SciPP are free (libre) C++20 libraries; Palabos is used only as a
-scientific reference and test oracle.
+Cyberfluids is released under the **[MIT License](LICENSE)**. NumPP and SciPP are free (libre)
+C++20 libraries; Palabos is used only as a scientific reference and test oracle.

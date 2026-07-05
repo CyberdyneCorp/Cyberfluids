@@ -1,0 +1,133 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Cancel superseded runs on the same ref.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # NumPP/SciPP live in a sibling CyberdyneCorp org. If those repos are private,
+  # set the CYBERDYNE_DEPS_TOKEN secret to a read-scoped PAT; if public, the
+  # clone works without it.
+  DEPS_TOKEN: ${{ secrets.CYBERDYNE_DEPS_TOKEN }}
+
+jobs:
+  build-test:
+    name: Linux build + test (GCC, CPU par_unseq)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Cyberfluids
+        uses: actions/checkout@v4
+
+      - name: Install toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            cmake ninja-build libtbb-dev python3 python3-numpy
+          # libtbb-dev: libstdc++ std::execution::par_unseq backend (cpu.hpp).
+          # python3-numpy: enables the ctest python_binding / python_dlpack tests.
+
+      - name: Clone NumPP + SciPP (siblings of the repo)
+        working-directory: ${{ github.workspace }}/..
+        run: |
+          AUTH=""
+          [ -n "$DEPS_TOKEN" ] && AUTH="${DEPS_TOKEN}@"
+          git clone --depth 1 https://${AUTH}github.com/CyberdyneCorp/NumPP.git NumPP
+          # SciPP is optional (nothing links it yet); best-effort.
+          git clone --depth 1 https://${AUTH}github.com/CyberdyneCorp/SciPP.git SciPP || \
+            echo "SciPP clone skipped (optional)"
+
+      - name: Bootstrap deps into .deps
+        run: |
+          chmod +x scripts/bootstrap_deps.sh
+          scripts/bootstrap_deps.sh "$GITHUB_WORKSPACE/../NumPP" "$GITHUB_WORKSPACE/../SciPP"
+
+      - name: Configure
+        run: |
+          cmake -S . -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_PREFIX_PATH="$GITHUB_WORKSPACE/.deps" \
+            -DCYBERFLUIDS_BUILD_TESTS=ON \
+            -DCYBERFLUIDS_BUILD_EXAMPLES=ON \
+            -DCMAKE_EXE_LINKER_FLAGS="-ltbb" \
+            -DCMAKE_SHARED_LINKER_FLAGS="-ltbb"
+          # -ltbb: link libstdc++'s parallel-algorithm backend. Without it the
+          # GCC build fails to link the par_unseq path compiled by cpu.hpp.
+
+      - name: Build
+        run: cmake --build build -j
+
+      - name: Test
+        # No -E needed on Linux: Metal isn't built, swift_binding isn't
+        # registered (swift absent), and oracle_cavity/3d compare against the
+        # in-repo CSVs (Palabos is only used offline to regenerate those).
+        run: ctest --test-dir build --output-on-failure
+
+      - name: Upload logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-logs
+          path: |
+            build/Testing/**
+            build/**/*.log
+            build/CMakeFiles/CMakeConfigureLog.yaml
+          if-no-files-found: ignore
+
+  macos-build:
+    name: macOS build (Metal build-only, Swift binding test)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install toolchain
+        run: |
+          brew install ninja
+          python3 -m pip install --break-system-packages numpy || true
+      - name: Clone NumPP + SciPP
+        working-directory: ${{ github.workspace }}/..
+        run: |
+          AUTH=""
+          [ -n "$DEPS_TOKEN" ] && AUTH="${DEPS_TOKEN}@"
+          git clone --depth 1 https://${AUTH}github.com/CyberdyneCorp/NumPP.git NumPP
+          git clone --depth 1 https://${AUTH}github.com/CyberdyneCorp/SciPP.git SciPP || true
+      - name: Bootstrap deps
+        run: |
+          chmod +x scripts/bootstrap_deps.sh
+          scripts/bootstrap_deps.sh "$GITHUB_WORKSPACE/../NumPP" "$GITHUB_WORKSPACE/../SciPP"
+      - name: Configure (Metal ON)
+        run: |
+          cmake -S . -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_PREFIX_PATH="$GITHUB_WORKSPACE/.deps" \
+            -DCYBERFLUIDS_METAL=ON
+          # No -ltbb: Apple libc++ lacks __cpp_lib_parallel_algorithm, so
+          # cpu.hpp compiles the serial fallback.
+      - name: Build (compiles cyberfluids_metal + test_metal_cavity)
+        run: cmake --build build -j
+      - name: Test (Metal GPU test excluded — no guaranteed GPU on CI VM)
+        run: ctest --test-dir build --output-on-failure -E 'metal_cavity'
+      - name: Upload logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-logs
+          path: |
+            build/Testing/**
+            build/**/*.log
+          if-no-files-found: ignore
+
+  openspec-validate:
+    name: OpenSpec validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm i -g @fission-ai/openspec
+      - run: openspec validate --all --strict

@@ -25,10 +25,15 @@ and a 3D oracle reference.
 TRT, MRT, regularized, and forced dynamics; D3Q27 and D2Q5/D3Q7 advection-diffusion
 descriptors.
 
-## M2 — Geometry & I/O
+## M2 — Geometry & I/O  *(done)*
 
-STL import + voxelization, off-lattice bounce-back on imported geometries, VTK output,
-checkpoint/restart.
+VTK `STRUCTURED_POINTS` output, checkpoint/restart, and STL/OBJ import +
+voxelization via CyberMeshGenerator (optional `CYBERFLUIDS_GEOMETRY` component;
+core stays dependency-free). Off-lattice no-slip is realized through partial
+bounce-back — the voxelized solid fraction `ns` drives `PorousForcedBGKdynamics`,
+so imported geometry becomes walls with no new collision/streaming code.
+Validated by voxel-volume convergence, geometry-defined Poiseuille flow, and a
+CyberMeshGenerator STL round-trip.
 
 ## M3 — GPU backends
 

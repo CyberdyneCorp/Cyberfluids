@@ -47,3 +47,6 @@ DerivedData/
 
 # Swift binding build
 /bindings/swift/.build/
+
+# Generated example artifacts (VTK / images)
+examples/output/

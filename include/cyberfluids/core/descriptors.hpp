@@ -162,13 +162,24 @@ using ForcedD3Q27 = WithExternal<D3Q27, ext::Force<3>>;
 using AdvectedD2Q5 = WithExternal<D2Q5, ext::Velocity<2>>;
 using AdvectedD3Q7 = WithExternal<D3Q7, ext::Velocity<3>>;
 
+// Porous variants: a single per-cell scalar holds the solid fraction `ns`
+// consumed by PorousForcedBGKdynamics (partial bounce-back). A uniform body
+// force is a dynamics member, so the descriptor only carries `ns`.
+using PorousD2Q9 = WithExternal<D2Q9, ext::Scalar<1>>;
+using PorousD3Q19 = WithExternal<D3Q19, ext::Scalar<1>>;
+
 static_assert(LatticeDescriptor<ForcedD2Q9>);
 static_assert(LatticeDescriptor<ForcedD3Q19>);
 static_assert(LatticeDescriptor<ForcedD3Q27>);
 static_assert(LatticeDescriptor<AdvectedD2Q5>);
 static_assert(LatticeDescriptor<AdvectedD3Q7>);
+static_assert(LatticeDescriptor<PorousD2Q9>);
+static_assert(LatticeDescriptor<PorousD3Q19>);
 static_assert(numExternalScalars<D2Q9>() == 0);
 static_assert(numExternalScalars<ForcedD2Q9>() == 2);
 static_assert(numExternalScalars<AdvectedD3Q7>() == 3);
+static_assert(numExternalScalars<PorousD2Q9>() == 1);
+static_assert(numScalarScalars<PorousD2Q9>() == 1);
+static_assert(numForceScalars<PorousD2Q9>() == 0);
 
 }  // namespace cyberfluids::descriptors
