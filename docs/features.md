@@ -20,6 +20,7 @@ Legend: ✅ implemented · 🟡 partial (MVP subset) · 📋 planned.
 | [Language bindings](../openspec/specs/language-bindings/spec.md) | Python (NumPy interop) and Swift | ✅ Both, over a shared C ABI; zero-copy DLPack; 3D wind-tunnel binding |
 | [Platform support](../openspec/specs/platform-support/spec.md) | Desktop/server, iOS/iPadOS, Android NDK | 🟡 desktop/server (mobile toolchains planned) |
 | [Oracle validation](../openspec/specs/oracle-validation/spec.md) | Regression vs Palabos within a documented tolerance | ✅ 2D + 3D lid-driven cavity vs Palabos (~0.8% RMS of U) |
+| [Consumability](../openspec/specs/consumability/spec.md) | Usable-by-others readiness rubric (install, packaging, CI, versioning, governance) | ✅ find_package + pip wheel + zero-setup build + CI + governance files |
 
 ## What is implemented
 
