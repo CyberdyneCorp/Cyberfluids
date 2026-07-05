@@ -32,14 +32,19 @@ set(CYBERFLUIDS_NUMPP_REPO "https://github.com/CyberdyneCorp/NumPP.git"
 
 list(PREPEND CMAKE_PREFIX_PATH "${CYBERFLUIDS_DEPS_PREFIX}")
 
-find_package(NumPP CONFIG QUIET
-    NO_CMAKE_PACKAGE_REGISTRY
-    NO_CMAKE_SYSTEM_PACKAGE_REGISTRY)
+# The Python wheel needs NumPP statically absorbed into libcyberfluids_c (a
+# self-contained .so), so it must use the FetchContent static build — skip the
+# installed (shared) package even when one is present under the deps prefix.
+if(NOT CYBERFLUIDS_PYTHON_WHEEL)
+    find_package(NumPP CONFIG QUIET
+        NO_CMAKE_PACKAGE_REGISTRY
+        NO_CMAKE_SYSTEM_PACKAGE_REGISTRY)
+endif()
 if(NumPP_FOUND)
     set(CYBERFLUIDS_HAVE_NUMPP ON)
     set(CYBERFLUIDS_NUMPP_FROM_PACKAGE ON)
     message(STATUS "Cyberfluids: found installed NumPP ${NumPP_VERSION}")
-elseif(CYBERFLUIDS_FETCH_DEPS)
+elseif(CYBERFLUIDS_FETCH_DEPS OR CYBERFLUIDS_PYTHON_WHEEL)
     message(STATUS "Cyberfluids: NumPP not installed under '${CYBERFLUIDS_DEPS_PREFIX}'; "
                    "fetching ${CYBERFLUIDS_NUMPP_TAG} via FetchContent")
     include(FetchContent)

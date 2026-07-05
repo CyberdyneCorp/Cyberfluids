@@ -92,8 +92,10 @@ against a stored Palabos reference within a documented tolerance. See
 
 ## Bindings
 
-- **Python:** `import cyberfluids` (`PYTHONPATH=bindings/python`, or `pip install bindings/python`)
-  — fields return as NumPy arrays.
+- **Python:** `pip install ./bindings/python` — builds and bundles the native C ABI for you
+  (scikit-build-core + CMake, NumPP fetched and statically linked), so the wheel is
+  self-contained; `import cyberfluids` then works anywhere. Fields return as NumPy arrays. For
+  in-repo development against the build tree instead, use `PYTHONPATH=bindings/python`.
 - **Swift:** `swift run --package-path bindings/swift … cavity-demo` (see
   [`bindings/README.md`](../bindings/README.md) for flags).
 

@@ -52,8 +52,9 @@ Shan-Chen multi-component/multiphase, porous media (partial bounce-back), therma
 ## M5 — Mobile & bindings GA  *(active)*
 
 iOS/iPadOS and Android NDK toolchain builds, hardened and exercised in CI; Python and Swift
-bindings to general availability with full field interop — including a self-contained,
-`pip install`-able Python wheel that builds the C ABI (the install/export groundwork is in place).
+bindings to general availability with full field interop. A self-contained, `pip install`-able
+Python wheel that builds and bundles the C ABI (NumPP statically linked) **ships now** — see
+[getting-started](getting-started.md); manylinux/PyPI publishing is the remaining step.
 
 ## Beyond the milestones
 
