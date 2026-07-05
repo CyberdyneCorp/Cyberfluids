@@ -11,23 +11,32 @@ Legend: ✅ implemented · 🟡 partial (MVP subset) · 📋 planned.
 | [Lattice descriptors](../openspec/specs/lattice-descriptors/spec.md) | Compile-time `DdQq` stencils, Concept-validated | 🟡 D2Q9/D3Q19/D3Q27/D2Q5/D3Q7 + forced/advected external-field variants (WithSource planned) |
 | [Core data structures](../openspec/specs/core-data-structures/spec.md) | `BlockLattice`, `Cell` views, scalar/tensor fields; smart-pointer ownership | ✅ Implemented |
 | [External fields](../openspec/specs/external-fields/spec.md) | Per-cell external scalars (force / advection velocity), SoA, fluid→AD coupling | ✅ Implemented (zero-cost when absent) |
-| [Collision dynamics](../openspec/specs/collision-dynamics/spec.md) | BGK, TRT, MRT, regularized, forced, advection-diffusion; `omega = 1/tau` | 🟡 BGK · TRT · MRT (D2Q9) · regularized · forced (uniform + per-cell) · advection-diffusion; MRT-3D planned |
+| [Collision dynamics](../openspec/specs/collision-dynamics/spec.md) | BGK, TRT, MRT, regularized, forced, advection-diffusion; `omega = 1/tau` | ✅ BGK · TRT · MRT (D2Q9 **and D3Q19**) · regularized · forced (uniform + per-cell) · advection-diffusion |
 | [Streaming & time step](../openspec/specs/streaming-and-timestep/spec.md) | collide / stream / fused collideAndStream | ✅ Implemented |
-| [Boundary conditions](../openspec/specs/boundary-conditions/spec.md) | Bounce-back, Zou/He velocity, periodic, off-lattice STL | 🟡 bounce-back, moving-wall, Zou/He (top), periodic (STL/all-faces planned) |
+| [Boundary conditions](../openspec/specs/boundary-conditions/spec.md) | Bounce-back, Zou/He velocity, periodic, off-lattice STL | ✅ bounce-back · moving-wall · Zou/He · periodic · off-lattice STL (partial bounce-back) |
 | [Hardware backends](../openspec/specs/hardware-backends/spec.md) | CPU `par_unseq`; optional CUDA / Metal / OpenCL / SYCL; no MPI | 🟡 CPU + Metal (D2Q9 BGK cavity, fp32) implemented; CUDA/OpenCL stubs |
-| [Physical models](../openspec/specs/physical-models/spec.md) | Navier-Stokes, Shan-Chen multiphase, porous media, thermal | 🟡 Navier-Stokes cavity + AD transport + thermal Boussinesq + Shan-Chen multiphase (single-component); porous planned |
-| [Geometry & I/O](../openspec/specs/geometry-and-io/spec.md) | STL import + voxelization, VTK output, checkpoint/restart | 🟡 VTK output + checkpoint/restart + centerline CSV; STL/voxelization planned |
-| [Language bindings](../openspec/specs/language-bindings/spec.md) | Python (NumPy interop) and Swift | ✅ Both, over a shared C ABI |
+| [Physical models](../openspec/specs/physical-models/spec.md) | Navier-Stokes, Shan-Chen multiphase, porous media, thermal | ✅ Navier-Stokes · Shan-Chen multiphase (single + multi-component) · thermal Boussinesq · porous media (partial bounce-back) |
+| [Geometry & I/O](../openspec/specs/geometry-and-io/spec.md) | STL import + voxelization, VTK output, checkpoint/restart | ✅ VTK + checkpoint/restart + centerline CSV + STL/OBJ import & voxelization (CyberMeshGenerator) |
+| [Language bindings](../openspec/specs/language-bindings/spec.md) | Python (NumPy interop) and Swift | ✅ Both, over a shared C ABI; zero-copy DLPack; 3D wind-tunnel binding |
 | [Platform support](../openspec/specs/platform-support/spec.md) | Desktop/server, iOS/iPadOS, Android NDK | 🟡 desktop/server (mobile toolchains planned) |
+| [Oracle validation](../openspec/specs/oracle-validation/spec.md) | Regression vs Palabos within a documented tolerance | ✅ 2D + 3D lid-driven cavity vs Palabos (~0.8% RMS of U) |
 
-## What is implemented (MVP)
+## What is implemented
 
-The [`bootstrap-cyberfluids-core`](../openspec/changes/bootstrap-cyberfluids-core) change
-delivers a working, provably-correct slice:
+Each capability is delivered as its own OpenSpec change (see
+[`openspec/changes/archive/`](../openspec/changes/archive)); **36/36 tests pass**.
 
-- **Done:** D2Q9 + D3Q19, BGK, collide-and-stream, bounce-back + moving-wall + Zou/He +
-  periodic boundaries, the CPU backend, a 2D+3D lid-driven cavity **validated against Palabos**
-  (~0.8% RMS of the lid speed), Python + Swift bindings, and the CMake build. 12/12 tests pass.
-- **Planned follow-ups:** TRT/MRT/regularized/forced, D3Q27 & AD descriptors, GPU backends,
-  multiphase, thermal, porous media, STL import + VTK + checkpointing, mobile toolchains, and a
-  3D oracle. Each becomes its own OpenSpec change.
+- **Dynamics & stencils:** D2Q9 / D3Q19 / D3Q27 / D2Q5 / D3Q7; BGK, TRT, MRT (2D + 3D),
+  regularized, and forced (Guo) collision; per-cell external force / advection-velocity fields.
+- **Physics:** lid-driven cavity, forced Poiseuille, Shan-Chen multiphase (single + multi-component),
+  thermal Boussinesq with two-way advection-diffusion coupling, Rayleigh-Bénard, and porous media
+  via partial bounce-back (analytic Darcy oracle).
+- **Geometry & I/O:** STL/OBJ import + voxelization (CyberMeshGenerator), off-lattice no-slip via
+  partial bounce-back, VTK output, and bit-exact checkpoint/restart.
+- **Solvers & bindings:** a 3D wind tunnel (external flow past an imported mesh), driven from Python
+  with zero-copy DLPack interop and VTK export; Python + Swift over a shared C ABI.
+- **Backends & validation:** CPU (`par_unseq` + serial fallback) and Metal (Apple Silicon); a
+  2D + 3D Palabos oracle; a GitHub Actions CI pipeline.
+
+- **Planned follow-ups:** CUDA / OpenCL / SYCL device kernels (seam locked), iOS / Android
+  toolchains, and momentum-exchange drag/lift reporting. Each becomes its own OpenSpec change.

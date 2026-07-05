@@ -29,6 +29,18 @@ struct Velocity {
     static constexpr int sizeOfForce = 0;
 };
 
+/// `N` generic per-cell scalars (e.g. a porous solid fraction).
+template <int N>
+struct Scalar {
+    static constexpr int numScalars = N;
+    static constexpr int scalarBeginsAt = 0;
+    static constexpr int sizeOfScalar = N;
+    static constexpr int forceBeginsAt = 0;
+    static constexpr int sizeOfForce = 0;
+    static constexpr int velocityBeginsAt = 0;
+    static constexpr int sizeOfVelocity = 0;
+};
+
 }  // namespace ext
 
 /// Compose an external-field spec onto a base descriptor without modifying the
@@ -64,6 +76,17 @@ template <class D>
 constexpr int numVelocityScalars() {
     if constexpr (requires { D::ExternalSpec::sizeOfVelocity; })
         return D::ExternalSpec::sizeOfVelocity;
+    else
+        return 0;
+}
+
+/// Size of the declared generic-scalar block (0 if none). Used for the porous
+/// solid-fraction slot; distinct from force/velocity so a mismatched dynamics
+/// fails to compile rather than reading the wrong offset.
+template <class D>
+constexpr int numScalarScalars() {
+    if constexpr (requires { D::ExternalSpec::sizeOfScalar; })
+        return D::ExternalSpec::sizeOfScalar;
     else
         return 0;
 }

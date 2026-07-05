@@ -32,6 +32,7 @@ option(CYBERFLUIDS_CUDA   "Enable NVIDIA CUDA backend"                     OFF)
 option(CYBERFLUIDS_METAL  "Enable Apple Metal backend (metal-cpp)"         OFF)
 option(CYBERFLUIDS_OPENCL "Enable OpenCL backend"                          OFF)
 option(CYBERFLUIDS_SYCL   "Enable SYCL backend"                            OFF)
+option(CYBERFLUIDS_GEOMETRY "Enable STL/OBJ geometry import (CyberMeshGenerator)" OFF)
 
 # -----------------------------------------------------------------------------
 # Dependencies (NumPP / SciPP — CyberdyneCorp scientific suite)
@@ -70,6 +71,17 @@ endif()
 
 # Optional Apple Metal GPU backend (defines cyberfluids_metal + CYBERFLUIDS_HAVE_METAL).
 include(cmake/CyberfluidsMetal.cmake)
+
+# Optional STL/OBJ geometry import (defines cyberfluids_geometry + CYBERFLUIDS_HAVE_GEOMETRY).
+include(cmake/CyberfluidsGeometry.cmake)
+
+# When geometry is built, let the C ABI expose STL-loading wind-tunnel entry
+# points (cf_wind_tunnel_create_from_stl). The tunnel itself is CMG-free and
+# always present; only STL loading needs this link + define.
+if(TARGET cyberfluids_c AND CYBERFLUIDS_HAVE_GEOMETRY)
+    target_link_libraries(cyberfluids_c PRIVATE cyberfluids_geometry)
+    target_compile_definitions(cyberfluids_c PRIVATE CYBERFLUIDS_WITH_GEOMETRY)
+endif()
 
 if(CYBERFLUIDS_BUILD_TESTS)
     enable_testing()
