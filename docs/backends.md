@@ -34,8 +34,8 @@ flowchart LR
 | Backend | Hardware | Enable flag | Status |
 |---|---|---|---|
 | **CPU** | x86-64 (AVX-512), ARM64 (Neon) | on by default | ✅ `std::execution::par_unseq` (guarded by `__cpp_lib_parallel_algorithm`) with a serial fallback |
-| **OpenCL** | Apple / AMD / Intel / NVIDIA GPUs | `-DCYBERFLUIDS_OPENCL=ON` | ✅ D3Q19 wind tunnel — device kernels validated on Apple M2 Max GPU (Linf/Uin ~ 1e-5 vs the fp64 CPU oracle; ~1.35 GLUPS) |
-| **CUDA** | NVIDIA GeForce / Quadro / Tesla | `-DCYBERFLUIDS_CUDA=ON` | 🟡 D3Q19 wind-tunnel kernels written (line-for-line mirror of the OpenCL path); **to be compiled + validated on an NVIDIA machine** (authored without nvcc) |
+| **OpenCL** | Apple / AMD / Intel / NVIDIA GPUs | `-DCYBERFLUIDS_OPENCL=ON` | ✅ D3Q19 wind tunnel — device kernels validated on Apple M2 Max GPU (~1.35 GLUPS) and NVIDIA RTX 5060 (~1.15 GLUPS); Linf/Uin ~ 1e-5 vs the fp64 CPU oracle |
+| **CUDA** | NVIDIA GeForce / Quadro / Tesla | `-DCYBERFLUIDS_CUDA=ON` | ✅ D3Q19 wind tunnel — device kernels validated on NVIDIA RTX 5060 (Blackwell, sm_120 via PTX JIT; Linf/Uin ~ 1e-5 vs the fp64 CPU oracle; ~1.15 GLUPS) |
 | **Metal** | Apple Silicon (Mac, iPad) | `-DCYBERFLUIDS_METAL=ON` | ✅ D2Q9 BGK cavity (fp32) — Objective-C++ + runtime MSL kernels |
 | **SYCL** | AMD, Intel, integrated GPUs | `-DCYBERFLUIDS_SYCL=ON` | 📋 Planned |
 
@@ -52,8 +52,20 @@ flowchart LR
   tolerance** (fp32 device vs fp64 CPU oracle).
 - No MPI library or launcher is required to build or run.
 
-Status: the **CPU** path is the always-on baseline. **OpenCL** is a real, validated GPU
-wind-tunnel solver (measured ~290× vs the serial macOS CPU path on an M2 Max; the fair figure
-vs a fully parallel CPU is smaller). **CUDA** is a line-for-line mirror of those kernels,
-authored without nvcc — it is compiled and validated on an NVIDIA machine (not yet run).
-**Metal** accelerates the 2D cavity. SYCL is planned.
+Status: the **CPU** path is the always-on baseline. **OpenCL** and **CUDA** are real, validated
+GPU wind-tunnel solvers. On an NVIDIA RTX 5060 both reach ~1.15 GLUPS — roughly **30× a fully
+parallel 24-thread CPU** (i9-12900K, fp64 `par_unseq` ≈ 0.038 GLUPS). CUDA and OpenCL land within
+noise of each other because the D3Q19 step is memory-bandwidth-bound (~78% of the card's DRAM
+peak), so both hit the same roofline. Note the GPU paths are fp32 vs the fp64 CPU baseline, so a
+same-precision comparison narrows the gap. **Metal** accelerates the 2D cavity. SYCL is planned.
+
+### Reproducing the benchmark
+
+```sh
+just gpu-detect     # what GPU backends does this host have?
+just bench          # CPU vs enabled GPU backends, default 160×80×80 grid
+just bench 256 128 128 300
+```
+
+The benchmark (`bench/wind_tunnel_bench.cpp`) times an identical wind-tunnel run per backend and
+reports GLUPS (giga lattice-updates/sec) plus the speed-up over the CPU baseline.

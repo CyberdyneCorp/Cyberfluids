@@ -54,10 +54,15 @@ jobs:
             -DCMAKE_PREFIX_PATH="$GITHUB_WORKSPACE/.deps" \
             -DCYBERFLUIDS_BUILD_TESTS=ON \
             -DCYBERFLUIDS_BUILD_EXAMPLES=ON \
-            -DCMAKE_EXE_LINKER_FLAGS="-ltbb" \
-            -DCMAKE_SHARED_LINKER_FLAGS="-ltbb"
+            -DCMAKE_EXE_LINKER_FLAGS="-Wl,--no-as-needed -ltbb" \
+            -DCMAKE_SHARED_LINKER_FLAGS="-Wl,--no-as-needed -ltbb"
           # -ltbb: link libstdc++'s parallel-algorithm backend. Without it the
           # GCC build fails to link the par_unseq path compiled by cpu.hpp.
+          # -Wl,--no-as-needed: linker flags land before the objects on the link
+          # line, so the default --as-needed would drop libtbb (no symbols are
+          # pending yet when it is seen) and the tbb::detail::r1::* references go
+          # unresolved. --no-as-needed pins it regardless of order. Mirrors the
+          # justfile's `configure` recipe so local and CI builds link identically.
 
       - name: Build
         run: cmake --build build -j
