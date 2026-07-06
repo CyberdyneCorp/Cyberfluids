@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.24)
 
 project(Cyberfluids
-    VERSION 0.0.1
+    VERSION 0.1.0
     DESCRIPTION "Zero-legacy C++20 Lattice Boltzmann CFD engine"
     HOMEPAGE_URL "https://github.com/CyberdyneCorp/Cyberfluids"
     LANGUAGES CXX)

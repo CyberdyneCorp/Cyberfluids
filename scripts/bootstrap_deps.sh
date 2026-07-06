@@ -32,13 +32,21 @@ echo ">> NumPP installed to $PREFIX"
 
 # SciPP: only installable once it exposes install(TARGETS/EXPORT) + a config
 # package. Attempt it if those rules exist; otherwise skip with a note.
+#
+# Best-effort: no Cyberfluids target links SciPP today, so a SciPP build/install
+# failure (e.g. its libstdc++-only <cmath> special functions don't compile under
+# Apple libc++) MUST NOT fail the Cyberfluids build. Warn and continue.
 if grep -qE "install\(EXPORT|SciPPConfig" "$SCIPP_SRC/CMakeLists.txt" "$SCIPP_SRC/src/CMakeLists.txt" 2>/dev/null; then
-  echo ">> Installing SciPP from $SCIPP_SRC"
-  cmake -S "$SCIPP_SRC" -B "$BUILDROOT/scipp" -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_INSTALL_PREFIX="$PREFIX" -DSCIPP_NUMPP_PREFIX="$PREFIX" \
-    -DSCIPP_BUILD_TESTS=OFF
-  cmake --build "$BUILDROOT/scipp" --target install -j"$JOBS"
-  echo ">> SciPP installed to $PREFIX"
+  echo ">> Installing SciPP (optional, best-effort) from $SCIPP_SRC"
+  if cmake -S "$SCIPP_SRC" -B "$BUILDROOT/scipp" -DCMAKE_BUILD_TYPE=Release \
+       -DCMAKE_INSTALL_PREFIX="$PREFIX" -DSCIPP_NUMPP_PREFIX="$PREFIX" \
+       -DSCIPP_BUILD_TESTS=OFF \
+     && cmake --build "$BUILDROOT/scipp" --target install -j"$JOBS"; then
+    echo ">> SciPP installed to $PREFIX"
+  else
+    echo ">> WARNING: SciPP build/install failed — continuing without it "
+    echo ">>          (SciPP is optional; no Cyberfluids target links it yet)."
+  fi
 else
   echo ">> SciPP has no install/export rules yet; skipping (not required for the MVP)."
 fi
