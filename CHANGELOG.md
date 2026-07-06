@@ -7,6 +7,11 @@ carry breaking changes while the API stabilizes).
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-07-06
+
+Production-readiness release: Cyberfluids is now consumable by others — installable, packaged,
+and governed — on top of the validated engine from 0.0.1.
+
 ### Added
 - **Self-contained Python wheel** — `pip install ./bindings/python` builds the C ABI via
   scikit-build-core + CMake (NumPP fetched and statically linked into a single bundled
@@ -52,5 +57,6 @@ scientific suite (NumPP), single-node, no MPI.
 - **Tooling** — a `justfile` (build, test, GPU, benchmark, spec), a GitHub Actions CI pipeline
   (Linux GCC + macOS Metal/Swift + OpenSpec validation), and in-repo OpenSpec specs.
 
-[Unreleased]: https://github.com/CyberdyneCorp/Cyberfluids/compare/v0.0.1...HEAD
+[Unreleased]: https://github.com/CyberdyneCorp/Cyberfluids/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/CyberdyneCorp/Cyberfluids/compare/v0.0.1...v0.1.0
 [0.0.1]: https://github.com/CyberdyneCorp/Cyberfluids/releases/tag/v0.0.1

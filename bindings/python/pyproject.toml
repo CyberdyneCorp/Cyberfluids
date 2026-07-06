@@ -4,7 +4,7 @@ build-backend = "scikit_build_core.build"
 
 [project]
 name = "cyberfluids"
-version = "0.0.1"
+version = "0.1.0"
 description = "Python binding for the Cyberfluids C++20 Lattice Boltzmann CFD engine"
 readme = "README.md"
 requires-python = ">=3.9"
